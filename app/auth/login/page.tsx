@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,12 +12,19 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { AuthLayout } from "@/components/auth/auth-layout"
 import { SocialLogin } from "@/components/auth/social-login"
+import { useAuth } from "@/hooks/use-auth"
+import { useRouter, useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,6 +35,20 @@ export default function LoginPage() {
     // Redirect to dashboard
     window.location.href = "/dashboard"
   }
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push(callbackUrl);
+    }
+  }, [isAuthenticated, router, callbackUrl]);
+
+   const handleGoogleSignIn = async () => {
+      try {
+        await signIn("google", { callbackUrl });
+      } catch (error) {
+        console.error("Error signing in with Google:", error);
+      }
+    };
 
   return (
     <AuthLayout
