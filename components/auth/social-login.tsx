@@ -7,17 +7,27 @@ interface SocialLoginProps {
   isRegister?: boolean
 }
 
-export function SocialLogin({ isRegister = false }: SocialLoginProps) {
-  const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
+interface SocialLoginProps {
+  isRegister?: boolean;
+  onGoogleSignIn: () => Promise<void>;
+  loading?: boolean;
+}
 
-  const handleSocialLogin = async (provider: string) => {
-    setLoadingProvider(provider)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setLoadingProvider(null)
-    // Redirect to dashboard
-    window.location.href = "/dashboard"
-  }
+export function SocialLogin({ isRegister = false, onGoogleSignIn, loading = false }: SocialLoginProps) {
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const handleGoogleLogin = async () => {
+    if (loading || isGoogleLoading) return;
+    
+    setIsGoogleLoading(true);
+    try {
+      await onGoogleSignIn();
+    } catch (error) {
+      console.error('Error during Google sign-in:', error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
 
   const buttonText = isRegister ? "Sign up" : "Continue"
 
@@ -26,10 +36,10 @@ export function SocialLogin({ isRegister = false }: SocialLoginProps) {
       <Button
         variant="outline"
         className="w-full h-11 border-2 hover:bg-accent bg-transparent"
-        onClick={() => handleSocialLogin("google")}
-        disabled={loadingProvider !== null}
+        onClick={handleGoogleLogin}
+        disabled={loading || isGoogleLoading}
       >
-        {loadingProvider === "google" ? (
+        {loading || isGoogleLoading ? (
           <div className="flex items-center">
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
             Connecting...
