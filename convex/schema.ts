@@ -9,6 +9,7 @@ export default defineSchema({
     lastName: v.string(),
     hashedPassword: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
+    image: v.optional(v.string()),
     role: v.union(v.literal("owner"), v.literal("staff")),
     businessId: v.optional(v.id("businesses")),
     createdAt: v.number(),

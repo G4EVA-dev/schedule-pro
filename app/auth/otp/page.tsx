@@ -1,162 +1,239 @@
-"use client"
+// app/auth/otp/page.tsx
+'use client';
 
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { ArrowRight, ArrowLeft, RefreshCw } from "lucide-react"
-import Link from "next/link"
-import { AuthLayout } from "@/components/auth/auth-layout"
-import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
+import { AuthLayout } from '@/components/auth/auth-layout';
 
 export default function OTPPage() {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""])
-  const [isLoading, setIsLoading] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(60)
-  const [canResend, setCanResend] = useState(false)
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-  const searchParams = useSearchParams()
-  const email = searchParams.get("email") || "user@example.com"
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [isLoading, setIsLoading] = useState(false);
+  const [resendDisabled, setResendDisabled] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+
+  const email = searchParams.get('email');
 
   useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000)
-      return () => clearTimeout(timer)
+    if (!email) {
+      toast({
+        title: 'Error',
+        description: 'No email provided for verification',
+        variant: 'destructive',
+      });
+      router.push('/auth/register');
+      return;
+    }
+
+    // Start countdown for resend button
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
     } else {
-      setCanResend(true)
+      setResendDisabled(false);
     }
-  }, [timeLeft])
+  }, [countdown, email, router, toast]);
 
-  const handleChange = (index: number, value: string) => {
-    if (value.length > 1) return
+  const handleOtpChange = (element: HTMLInputElement, index: number) => {
+    if (isNaN(Number(element.value))) return false;
 
-    const newOtp = [...otp]
-    newOtp[index] = value
-    setOtp(newOtp)
+    const newOtp = [...otp];
+    newOtp[index] = element.value;
+    setOtp(newOtp);
 
-    // Move to next input
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus()
+    // Focus next input
+    if (element.value && index < 5) {
+      const nextInput = element.nextElementSibling as HTMLInputElement;
+      if (nextInput) nextInput.focus();
     }
-  }
+  };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      // Focus previous input on backspace
+      const prevInput = e.currentTarget.previousSibling as HTMLInputElement;
+      if (prevInput) prevInput.focus();
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const otpValue = otp.join("")
-    if (otpValue.length !== 6) {
-      alert("Please enter all 6 digits")
-      return
+    e.preventDefault();
+    if (!email) return;
+
+    const otpCode = otp.join('');
+    if (otpCode.length !== 6) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a 6-digit OTP',
+        variant: 'destructive',
+      });
+      return;
     }
 
-    setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    // Redirect to dashboard
-    window.location.href = "/dashboard"
-  }
+    setIsLoading(true);
 
-  const handleResend = async () => {
-    setCanResend(false)
-    setTimeLeft(60)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    alert("New OTP sent!")
+    try {
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp: otpCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to verify OTP');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Email verified successfully!',
+      });
+
+      // Redirect to dashboard or login page
+      router.push('/dashboard');
+
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to verify OTP',
+        variant: 'destructive',
+      });
+      // Clear OTP on error
+      setOtp(['', '', '', '', '', '']);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email || resendDisabled) return;
+
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resend OTP');
+      }
+
+      toast({
+        title: 'Success',
+        description: 'New OTP sent to your email',
+      });
+
+      // Reset countdown and disable resend button
+      setCountdown(30);
+      setResendDisabled(true);
+      setOtp(['', '', '', '', '']);
+
+    } catch (error) {
+      console.error('Resend OTP error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to resend OTP. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (!email) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Invalid verification request</p>
+      </div>
+    );
   }
 
   return (
     <AuthLayout
-      title="Verify your email"
-      subtitle="We've sent a 6-digit verification code to your email address"
-      image="/placeholder.svg?height=400&width=400&text=Verify+Email"
-    >
-      <div className="w-full max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Check your email</h1>
-          <p className="text-muted-foreground">
-            We sent a verification code to <strong>{email}</strong>
+    title="Verify your email"
+    subtitle="We've sent a 6-digit verification code to your email address"
+    image="/placeholder.svg?height=400&width=400&text=Verify+Email"
+  > 
+    <div className="flex min-h-screen flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Verify Your Email</h1>
+          <p className="text-muted-foreground mt-2">
+            We've sent a 6-digit code to {email}
           </p>
         </div>
 
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl font-semibold">Enter verification code</CardTitle>
-            <CardDescription>Enter the 6-digit code we sent to your email address</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="flex justify-center space-x-2">
-                {otp.map((digit, index) => (
-                  <Input
-                    key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-12 text-center text-lg font-semibold"
-                    autoComplete="off"
-                  />
-                ))}
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex justify-center space-x-2">
+            {otp.map((digit, index) => (
+             <Input
+             key={index}
+             type="text"
+             maxLength={1}
+             value={digit}
+             onChange={(e) => {
+               const value = e.target.value.toUpperCase(); // Convert to uppercase
+               if (value === '' || /^[A-Z0-9]$/.test(value)) {
+                 const newOtp = [...otp];
+                 newOtp[index] = value;
+                 setOtp(newOtp);
+                 if (value && index < 5) {
+                   const nextInput = e.target.nextElementSibling as HTMLInputElement;
+                   if (nextInput) nextInput.focus();
+                 }
+               }
+             }}
+             onKeyDown={(e) => {
+               if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                 const prevInput = e.currentTarget.previousSibling as HTMLInputElement;
+                 if (prevInput) prevInput.focus();
+               }
+             }}
+             className="w-12 h-14 text-center text-xl font-mono"
+             disabled={isLoading}
+             required
+           />
+            ))}
+          </div>
 
-              <div className="text-center">
-                {canResend ? (
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={handleResend}
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Resend code
-                  </Button>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Resend code in {timeLeft}s</p>
-                )}
-              </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || otp.some(digit => !digit)}
+          >
+            {isLoading ? 'Verifying...' : 'Verify Email'}
+          </Button>
+        </form>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Verifying...
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    Verify email
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </div>
-                )}
-              </Button>
-
-              <Button asChild variant="ghost" className="w-full">
-                <Link href="/auth/register">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to registration
-                </Link>
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <div className="text-center mt-6 text-sm text-muted-foreground">
-          Didn't receive the code? Check your spam folder or{" "}
-          <Link href="/auth/register" className="text-blue-600 hover:text-blue-700">
-            use a different email
-          </Link>
+        <div className="text-center text-sm">
+          <p className="text-muted-foreground">
+            Didn't receive a code?{' '}
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={resendDisabled}
+              className={`font-medium ${
+                resendDisabled ? 'text-muted-foreground' : 'text-primary hover:underline'
+              }`}
+            >
+              {resendDisabled ? `Resend in ${countdown}s` : 'Resend Code'}
+            </button>
+          </p>
         </div>
       </div>
+    </div>
     </AuthLayout>
-  )
+  );
 }

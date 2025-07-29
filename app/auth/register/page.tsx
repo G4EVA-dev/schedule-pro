@@ -150,6 +150,20 @@ export default function RegisterPage() {
         description: 'Please check your email to verify your account.',
       });
 
+      // After successful registration
+    const otpResponse = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: formData.email }),
+    });
+
+    if (!otpResponse.ok) {
+      const errorData = await otpResponse.json();
+      throw new Error(errorData.error || 'Failed to send OTP');
+    }
+
       // Redirect to OTP verification
       router.push(`/auth/otp?email=${encodeURIComponent(formData.email)}`);
     } catch (error) {
