@@ -3,6 +3,18 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+  otps: defineTable({
+    email: v.string(),
+    code: v.string(),
+    token: v.string(),
+    expiresAt: v.number(),
+    verified: v.boolean(),
+    attempts: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_token", ["token"]),
   users: defineTable({
     email: v.string(),
     firstName: v.string(),
@@ -13,6 +25,7 @@ export default defineSchema({
     role: v.union(v.literal("owner"), v.literal("staff")),
     businessId: v.optional(v.id("businesses")),
     createdAt: v.number(),
+    emailVerified: v.optional(v.boolean()),
   }).index("by_email", ["email"]),
 
   businesses: defineTable({

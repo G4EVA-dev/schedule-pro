@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { generateOTP } from '@/lib/otp';
+import { api } from '@/convex/_generated/api';
+import { fetchAction } from 'convex/nextjs'; // Add this import
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -15,9 +16,31 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate OTP
-    const { token, expiresAt } = generateOTP(email);
-    const otpCode = token.split('-')[0].slice(0, 6).toUpperCase();
+    // Generate OTP using Convex persistent backend
+    let otpResult;
+    try {
+      // Use fetchAction to call the public action
+      otpResult = await fetchAction(api.otpActions.publicGenerateOtp, {
+        email,
+      });
+    } catch (err: any) {
+      if (err.message && err.message.includes('Too many OTP requests')) {
+        return NextResponse.json(
+          { error: 'Too many OTP requests. Please try again later.' },
+          { status: 429 }
+        );
+      }
+      console.error('Error generating OTP:', err);
+      return NextResponse.json(
+        { error: 'Failed to generate OTP' },
+        { status: 500 }
+      );
+    }
+
+    // Rest of your code remains the same...
+    const otpCode = otpResult.code;
+    const token = otpResult.token;
+    const expiresAt = otpResult.expiresAt;
 
     // Send email with OTP
     const { data, error } = await resend.emails.send({
@@ -48,8 +71,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true,
       message: 'OTP sent successfully',
-      // In production, don't send the OTP back in the response
-      // This is just for testing
+      token: token,
       otp: process.env.NODE_ENV === 'development' ? otpCode : undefined
     });
 

@@ -45,6 +45,7 @@ export const createOAuthUser = mutation({
       role: "owner",
       createdAt: Date.now(),
       avatarUrl: args.image, // Using avatarUrl to match schema
+      emailVerified: false,
     });
 
     // Create default business
@@ -76,6 +77,8 @@ export const update = mutation({
       firstName: v.optional(v.string()),
       lastName: v.optional(v.string()),
       email: v.optional(v.string()),
+      emailVerified: v.optional(v.boolean()),
+      avatarUrl: v.optional(v.string()),
       // Add other user fields as needed
     }),
   },
@@ -83,6 +86,15 @@ export const update = mutation({
     const { id, updates } = args;
     await ctx.db.patch(id, updates);
     return await ctx.db.get(id);
+  },
+});
+
+// Mark email as verified
+export const markEmailVerified = mutation({
+  args: { id: v.id("users") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { emailVerified: true });
+    return await ctx.db.get(args.id);
   },
 });
 

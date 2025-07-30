@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       );
     }
 
+
     // Call Convex action (not mutation)
     const result = await fetchAction(api.auth.registerUser, {
       email: email.toLowerCase(),

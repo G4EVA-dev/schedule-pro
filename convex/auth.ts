@@ -28,6 +28,7 @@ export const createUser = mutation({
       lastName: args.lastName,
       role: args.role || "owner",
       createdAt: Date.now(),
+      emailVerified: false,
     });
   },
 });
@@ -69,6 +70,7 @@ export const registerUserInternal = internalMutation({
       hashedPassword: args.hashedPassword,
       role: "owner" as const,
       createdAt: Date.now(),
+      emailVerified: false,
     });
 
     // Create a default business for the user
@@ -150,6 +152,7 @@ export const register = mutation({
       hashedPassword: args.hashedPassword,
       role: "owner" as const,
       createdAt: Date.now(),
+      emailVerified: false,
     });
 
     // Create a default business for the user
@@ -175,3 +178,15 @@ export const register = mutation({
     return { userId, businessId };
   },
 });
+
+// export const publicVerifyOtp = action({
+//   args: {
+//     email: v.string(),
+//     code: v.string(),
+//     token: v.string(),
+//     registrationCheck: v.optional(v.boolean()),
+//   },
+//   handler: async (ctx, args) => {
+//     return await ctx.runMutation(internal.otpActions.verifyOtp, args);
+//   },
+// });
