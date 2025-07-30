@@ -1,439 +1,314 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Calendar,
   Users,
   DollarSign,
   TrendingUp,
-  Bell,
-  Search,
   Plus,
+  ArrowUpRight,
+  Clock,
+  CheckCircle,
+  AlertCircle,
   MoreHorizontal,
-  Filter,
-  Download,
-  Settings,
-  Home,
-  BarChart3,
-  UserCheck,
-  CalendarDays,
-  Menu,
-  X,
 } from "lucide-react"
-import { useState } from "react"
+import { motion } from "framer-motion"
 import Link from "next/link"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { DashboardLoading } from "@/components/ui/loading-state"
+import { useState } from "react"
 
 export default function Dashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isLoading] = useState(false)
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: [0.25, 0.46, 0.45, 0.94] as const
+      }
+    }
+  }
 
   const stats = [
     {
       title: "Total Revenue",
       value: "$12,426",
       change: "+12.5%",
+      changeType: "positive" as const,
       icon: DollarSign,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      description: "vs last month",
     },
     {
       title: "Appointments",
       value: "156",
       change: "+8.2%",
+      changeType: "positive" as const,
       icon: Calendar,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      description: "this month",
     },
     {
       title: "New Clients",
       value: "24",
-      change: "+15.3%",
+      change: "+4.1%",
+      changeType: "positive" as const,
       icon: Users,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
+      description: "this month",
     },
     {
-      title: "No-shows",
-      value: "3",
+      title: "Completion Rate",
+      value: "94.2%",
       change: "-2.1%",
-      icon: UserCheck,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
+      changeType: "negative" as const,
+      icon: CheckCircle,
+      description: "vs last month",
     },
   ]
 
   const recentAppointments = [
     {
+      id: 1,
       client: "Sarah Johnson",
-      service: "Consultation",
+      service: "Hair Cut & Style",
       time: "10:00 AM",
-      status: "confirmed",
-      avatar: "/placeholder.svg?height=32&width=32",
+      status: "confirmed" as const,
+      avatar: "/avatars/sarah.jpg",
     },
     {
+      id: 2,
       client: "Mike Chen",
-      service: "Follow-up",
+      service: "Beard Trim",
       time: "11:30 AM",
-      status: "pending",
-      avatar: "/placeholder.svg?height=32&width=32",
+      status: "pending" as const,
+      avatar: "/avatars/mike.jpg",
     },
     {
-      client: "Emma Davis",
-      service: "Initial Meeting",
+      id: 3,
+      client: "Emma Wilson",
+      service: "Color Treatment",
       time: "2:00 PM",
-      status: "confirmed",
-      avatar: "/placeholder.svg?height=32&width=32",
+      status: "confirmed" as const,
+      avatar: "/avatars/emma.jpg",
     },
     {
-      client: "James Wilson",
-      service: "Review",
+      id: 4,
+      client: "David Brown",
+      service: "Full Service",
       time: "3:30 PM",
-      status: "cancelled",
-      avatar: "/placeholder.svg?height=32&width=32",
+      status: "pending" as const,
+      avatar: "/avatars/david.jpg",
     },
   ]
 
-  const sidebarItems = [
-    { icon: Home, label: "Dashboard", active: true, href: "/dashboard" },
-    { icon: Calendar, label: "Calendar", href: "/calendar" },
-    { icon: Users, label: "Clients", href: "/clients" },
-    { icon: BarChart3, label: "Analytics", href: "/analytics" },
-    { icon: Settings, label: "Settings", href: "/settings" },
-  ]
+  const getStatusBadge = (status: "confirmed" | "pending" | "completed" | "cancelled") => {
+    const variants = {
+      confirmed: "default",
+      pending: "secondary",
+      completed: "default",
+      cancelled: "destructive",
+    } as const
+
+    const colors = {
+      confirmed: "text-green-600 bg-green-50",
+      pending: "text-yellow-600 bg-yellow-50",
+      completed: "text-blue-600 bg-blue-50",
+      cancelled: "text-red-600 bg-red-50",
+    }
+
+    return (
+      <Badge variant={variants[status]} className={colors[status]}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    )
+  }
+
+  if (isLoading) {
+    return <DashboardLoading />
+  }
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden animate-fade-in"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex lg:flex-col animate-slide-right`}
-      >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200 bg-white">
-          <div className="text-xl font-bold text-blue-600 hover:scale-105 transition-transform cursor-pointer">
-            SchedulePro
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden hover:bg-slate-100"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="h-5 w-5" />
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      {/* Welcome Section */}
+      <motion.div variants={itemVariants} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+          <p className="text-muted-foreground">
+            Here's what's happening with your business today.
+          </p>
+        </div>
+        <Link href="/calendar?new=true">
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Appointment
           </Button>
-        </div>
+        </Link>
+      </motion.div>
 
-        {/* Sidebar Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          <div className="space-y-2">
-            {sidebarItems.map((item, index) => (
-              <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 group ${
-                    item.active
-                      ? "bg-blue-50 text-blue-600 shadow-sm border border-blue-100"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+      {/* Stats Grid */}
+      <motion.div 
+        variants={itemVariants}
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+      >
+        {stats.map((stat, index) => (
+          <Card key={stat.title} className="hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+              <stat.icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <span
+                  className={`inline-flex items-center gap-1 ${
+                    stat.changeType === "positive" ? "text-green-600" : "text-red-600"
                   }`}
-                  onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon
-                    className={`h-5 w-5 mr-3 transition-colors ${
-                      item.active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600"
-                    }`}
-                  />
-                  <span className="font-medium">{item.label}</span>
-                  {item.active && <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" />}
-                </Link>
+                  <TrendingUp className="h-3 w-3" />
+                  {stat.change}
+                </span>
+                <span className="ml-1">{stat.description}</span>
               </div>
-            ))}
-          </div>
-        </nav>
+            </CardContent>
+          </Card>
+        ))}
+      </motion.div>
 
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-200 bg-slate-50">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg?height=32&width=32" />
-              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">JD</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">John Doe</p>
-              <p className="text-xs text-slate-500 truncate">john@example.com</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-0">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b border-slate-200 z-10 animate-slide-down">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden hover:bg-slate-100"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+      {/* Main Content Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        {/* Today's Appointments */}
+        <motion.div variants={itemVariants} className="col-span-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Dashboard</h1>
-                <p className="text-sm text-slate-500 hidden sm:block">Welcome back, John!</p>
+                <CardTitle>Today's Appointments</CardTitle>
+                <CardDescription>
+                  You have {recentAppointments.length} appointments scheduled for today
+                </CardDescription>
               </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              {/* Search - Hidden on mobile */}
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                <Input
-                  placeholder="Search..."
-                  className="pl-10 w-64 bg-slate-50 border-slate-200 focus:bg-white dark:bg-slate-800 dark:border-slate-700"
-                />
-              </div>
-
-              {/* Theme Toggle */}
-              <ThemeToggle />
-
-              {/* Notifications */}
-              <Button
-                size="icon"
-                variant="ghost"
-                className="relative hover:bg-slate-100 hover:scale-105 transition-all dark:hover:bg-slate-800"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full animate-pulse"></span>
-              </Button>
-
-              {/* User Avatar */}
-              <Avatar className="h-8 w-8 ring-2 ring-slate-100 dark:ring-slate-700">
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback className="bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
-                  JD
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8 space-y-8">
-            {/* Welcome Section */}
-            <div className="animate-fade-in-up">
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-6 sm:p-8 text-white">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold mb-2">Good morning, John! 👋</h2>
-                    <p className="text-blue-100 text-lg">Here's what's happening with your business today.</p>
-                  </div>
-                  <div className="mt-4 sm:mt-0">
-                    <Button className="bg-white text-blue-600 hover:bg-blue-50 hover:scale-105 transition-all">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Appointment
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {stats.map((stat, index) => (
-                <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-sm hover:scale-105">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-slate-600 mb-1">{stat.title}</p>
-                          <p className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">{stat.value}</p>
-                          <p
-                            className={`text-sm flex items-center ${
-                              stat.change.startsWith("+")
-                                ? "text-green-600"
-                                : stat.change.startsWith("-")
-                                  ? "text-red-600"
-                                  : "text-slate-600"
-                            }`}
-                          >
-                            <TrendingUp className="h-3 w-3 mr-1" />
-                            {stat.change}
-                          </p>
-                        </div>
-                        <div className={`p-3 rounded-xl ${stat.bgColor} ml-4`}>
-                          <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
-            </div>
-
-            {/* Main Dashboard Grid */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
-              {/* Today's Schedule */}
-              <div className="xl:col-span-2 animate-fade-in-up animation-delay-400">
-                <Card className="shadow-sm border-0">
-                  <CardHeader className="pb-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+              <Link href="/calendar">
+                <Button variant="outline" size="sm" className="gap-2">
+                  View All
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentAppointments.map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={appointment.avatar} alt={appointment.client} />
+                        <AvatarFallback>
+                          {appointment.client.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
-                        <CardTitle className="text-xl font-semibold">Today's Schedule</CardTitle>
-                        <CardDescription className="text-slate-600">
-                          You have {recentAppointments.length} appointments scheduled for today
-                        </CardDescription>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" className="text-xs bg-transparent">
-                          <Filter className="h-3 w-3 mr-1" />
-                          Filter
-                        </Button>
-                        <Button size="sm" className="text-xs">
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </Button>
+                        <p className="font-medium">{appointment.client}</p>
+                        <p className="text-sm text-muted-foreground">{appointment.service}</p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {recentAppointments.map((appointment, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all group hover:scale-[1.01] animate-slide-up"
-                        style={{ animationDelay: `${index * 100}ms` }}
-                      >
-                        <div className="flex items-center space-x-4">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={appointment.avatar || "/placeholder.svg"} />
-                            <AvatarFallback className="bg-blue-100 text-blue-600">
-                              {appointment.client
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-slate-900">{appointment.client}</p>
-                            <p className="text-sm text-slate-600">{appointment.service}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <p className="font-medium text-slate-900">{appointment.time}</p>
-                            <Badge
-                              variant={
-                                appointment.status === "confirmed"
-                                  ? "default"
-                                  : appointment.status === "pending"
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                              className="text-xs"
-                            >
-                              {appointment.status}
-                            </Badge>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm font-medium">{appointment.time}</p>
+                        {getStatusBadge(appointment.status)}
                       </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Actions & Activity */}
-              <div className="space-y-6 animate-fade-in-up animation-delay-600">
-                {/* Quick Actions */}
-                <Card className="shadow-sm border-0">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {[
-                      { icon: Plus, label: "New Appointment", color: "text-blue-600" },
-                      { icon: Users, label: "Add Client", color: "text-green-600" },
-                      { icon: CalendarDays, label: "View Calendar", color: "text-purple-600" },
-                      { icon: Download, label: "Export Data", color: "text-orange-600" },
-                    ].map((action, index) => (
-                      <div key={index}>
-                        <Button className="w-full justify-start bg-slate-50 hover:bg-slate-100 text-slate-700 border-0 hover:scale-[1.02] transition-all">
-                          <action.icon className={`h-4 w-4 mr-3 ${action.color}`} />
-                          {action.label}
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-
-                {/* Recent Activity */}
-                <Card className="shadow-sm border-0">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg font-semibold">Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {[
-                        {
-                          type: "booking",
-                          message: "New appointment booked",
-                          detail: "Sarah Johnson - 2 min ago",
-                          color: "bg-green-500",
-                        },
-                        {
-                          type: "payment",
-                          message: "Payment received",
-                          detail: "$150 from Mike Chen - 1 hour ago",
-                          color: "bg-blue-500",
-                        },
-                        {
-                          type: "cancellation",
-                          message: "Appointment cancelled",
-                          detail: "James Wilson - 3 hours ago",
-                          color: "bg-orange-500",
-                        },
-                      ].map((activity, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start space-x-3 animate-slide-up"
-                          style={{ animationDelay: `${index * 100}ms` }}
-                        >
-                          <div className={`w-2 h-2 ${activity.color} rounded-full mt-2 flex-shrink-0`}></div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-900">{activity.message}</p>
-                            <p className="text-xs text-slate-600 mt-1">{activity.detail}</p>
-                          </div>
-                        </div>
-                      ))}
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                ))}
               </div>
-            </div>
-          </div>
-        </main>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Quick Actions & Overview */}
+        <motion.div variants={itemVariants} className="col-span-3 space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Link href="/calendar?new=true">
+                <Button variant="outline" className="w-full justify-start gap-3">
+                  <Calendar className="h-4 w-4" />
+                  Schedule Appointment
+                </Button>
+              </Link>
+              <Link href="/clients?new=true">
+                <Button variant="outline" className="w-full justify-start gap-3">
+                  <Users className="h-4 w-4" />
+                  Add New Client
+                </Button>
+              </Link>
+              <Link href="/settings">
+                <Button variant="outline" className="w-full justify-start gap-3">
+                  <Clock className="h-4 w-4" />
+                  Manage Services
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Activity</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="text-sm">
+                    <span className="font-medium">Sarah Johnson</span> confirmed appointment
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                  <div className="text-sm">
+                    <span className="font-medium">New client</span> Mike Chen registered
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+                  <div className="text-sm">
+                    <span className="font-medium">Payment received</span> from Emma Wilson
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }

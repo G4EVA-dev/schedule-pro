@@ -176,88 +176,11 @@ export default function ClientsPage() {
           exit={{ opacity: 0 }}
           onClick={() => setSidebarOpen(false)}
         />
-      )}
-
-      {/* Sidebar */}
-      <motion.div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex lg:flex-col`}
-        initial={{ x: -256 }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200">
-          <div className="text-xl font-bold text-blue-600">SchedulePro</div>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          <motion.div variants={staggerContainer} initial="initial" animate="animate">
-            {sidebarItems.map((item, index) => (
-              <motion.div key={index} variants={staggerChild}>
-                <Link
-                  href={item.href || "#"}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                    item.active
-                      ? "bg-blue-50 text-blue-600 shadow-sm border border-blue-100"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  {item.label}
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </nav>
-      </motion.div>
+      )}     
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <motion.header
-          className="bg-white shadow-sm border-b border-slate-200"
-          initial={{ y: -64 }}
-          animate={{ y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center">
-              <Button variant="ghost" size="icon" className="lg:hidden mr-2" onClick={() => setSidebarOpen(true)}>
-                <Menu className="h-6 w-6" />
-              </Button>
-              <h1 className="text-2xl font-semibold text-slate-900">Clients</h1>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="relative hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                <Input
-                  placeholder="Search clients..."
-                  className="pl-10 w-64"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <Button size="icon" variant="ghost" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-              </Button>
-
-              <Avatar>
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-        </motion.header>
-
-        {/* Main Content */}
+       {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6">
           {/* Stats Cards */}
           <motion.div

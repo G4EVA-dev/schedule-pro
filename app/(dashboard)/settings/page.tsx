@@ -504,52 +504,7 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden animate-fade-in"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-xl transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex lg:flex-col animate-slide-right`}
-      >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-border">
-          <div className="text-xl font-bold text-blue-600 hover:scale-105 transition-transform cursor-pointer">
-            SchedulePro
-          </div>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          <div className="space-y-2">
-            {sidebarItems.map((item, index) => (
-              <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <Link
-                  href={item.href || "#"}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                    item.active
-                      ? "bg-blue-50 text-blue-600 shadow-sm border border-blue-100 dark:bg-blue-950 dark:border-blue-800"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  {item.label}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </nav>
-      </div>
-
-      {/* Main Content Area */}
+     {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="bg-card shadow-sm border-b border-border animate-slide-down">
@@ -566,11 +521,6 @@ export default function SettingsPage() {
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
-
-              <Avatar>
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
             </div>
           </div>
         </header>

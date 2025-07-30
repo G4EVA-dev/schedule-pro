@@ -94,97 +94,9 @@ export default function AnalyticsPage() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden animate-fade-in"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-xl transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:flex lg:flex-col animate-slide-right`}
-      >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-border">
-          <div className="text-xl font-bold text-blue-600 hover:scale-105 transition-transform cursor-pointer">
-            SchedulePro
-          </div>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          <div className="space-y-2">
-            {sidebarItems.map((item, index) => (
-              <div key={index} className="animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                <Link
-                  href={item.href || "#"}
-                  className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 ${
-                    item.active
-                      ? "bg-blue-50 text-blue-600 shadow-sm border border-blue-100 dark:bg-blue-950 dark:border-blue-800"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  {item.label}
-                </Link>
-              </div>
-            ))}
-          </div>
-        </nav>
-      </div>
-
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-card shadow-sm border-b border-border animate-slide-down">
-          <div className="flex items-center justify-between h-16 px-6">
-            <div className="flex items-center">
-              <Button variant="ghost" size="icon" className="lg:hidden mr-2" onClick={() => setSidebarOpen(true)}>
-                <Menu className="h-6 w-6" />
-              </Button>
-              <h1 className="text-2xl font-semibold">Analytics</h1>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Select value={timeRange} onValueChange={setTimeRange}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="90d">Last 90 days</SelectItem>
-                  <SelectItem value="1y">Last year</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-
-              <ThemeToggle />
-
-              <Button size="icon" variant="ghost" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-              </Button>
-
-              <Avatar>
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
+      {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
