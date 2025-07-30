@@ -20,10 +20,10 @@ import {
   UserCheck,
 } from "lucide-react"
 import { useState, useMemo } from "react"
-import { useQuery, useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAuth } from "@/hooks/use-auth"
-// Import clients query (after Convex codegen, api.clients.getClients will exist)
+import { useBusinessData } from "@/components/providers/BusinessDataProvider"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
@@ -66,13 +66,7 @@ export default function CalendarPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { businessId, user, isLoading: authLoading } = useAuth();
   const appointmentsData = useQuery(api.appointments.getAppointments, businessId ? { businessId } : 'skip');
-  const clientsData = useQuery(api.clients.getClients, businessId ? { businessId } : 'skip');
-  const staffData = useQuery(api.staff.getStaff, businessId ? { businessId } : 'skip');
-  const servicesData = useQuery(api.services.getServices, businessId ? { businessId } : 'skip');
-  const clientsLoading = !clientsData && businessId;
-  const clients = clientsData || [];
-  const staff = staffData || [];
-  const services = servicesData || [];
+  const { clients, staff, services } = useBusinessData();
   const createAppointment = useMutation(api.appointments.createAppointment);
   const updateAppointment = useMutation(api.appointments.updateAppointment);
   const deleteAppointment = useMutation(api.appointments.deleteAppointment);
@@ -377,14 +371,14 @@ export default function CalendarPage() {
               onAppointmentUpdate={handleAppointmentUpdate}
               onAppointmentDelete={handleAppointmentDelete}
               onAppointmentCreate={handleAppointmentCreate}
-              clients={clients.map((c: any) => ({
+              clients={clients ? clients.map((c: any) => ({
                 id: c._id,
                 name: c.name,
                 email: c.email,
                 avatar: c.avatar || undefined,
-              }))}
-              staff={staff}
-              services={services}
+              })) : []}
+              staff={staff || []}
+              services={services || []}
             />
           </motion.div>
         </main>

@@ -31,6 +31,11 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { useAuth } from "@/hooks/use-auth"
+import { CreateStaffModal, CreateServiceModal } from "@/components/dashboard/StaffServiceModals"
+import { useBusinessData } from "@/components/providers/BusinessDataProvider"
 
 export default function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -109,63 +114,151 @@ export default function SettingsPage() {
     </div>
   )
 
-  const BusinessSettings = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Business Information</CardTitle>
-          <CardDescription>Manage your business details and working hours</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="businessName">Business Name</Label>
-              <Input id="businessName" defaultValue="John Doe Consulting" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="businessType">Business Type</Label>
-              <Select defaultValue="consulting">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="consulting">Consulting</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="legal">Legal</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+  const BusinessSettings = () => {
+    const { businessId, user } = useAuth();
+    // Staff
+    const { staff, services } = useBusinessData();
+    const createStaff = useMutation(api.staff.createStaff);
+    const createService = useMutation(api.services.createService);
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Business Address</Label>
-            <Input id="address" defaultValue="123 Business St, New York, NY 10001" />
-          </div>
+    // Modal state
+    const [staffModalOpen, setStaffModalOpen] = useState(false);
+    const [serviceModalOpen, setServiceModalOpen] = useState(false);
+    // Loading/Error handling
+    const staffLoading = businessId && !staff;
+    const servicesLoading = businessId && !services;
+    // No error state from context, Convex handles errors globally
 
-          <div className="space-y-4">
-            <Label>Working Hours</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                <div key={day} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Switch defaultChecked={day !== "Sunday"} />
-                    <span className="font-medium">{day}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Input className="w-20 h-8" defaultValue="09:00" />
-                    <span>-</span>
-                    <Input className="w-20 h-8" defaultValue="17:00" />
-                  </div>
-                </div>
-              ))}
+    // Handlers
+    const handleCreateStaff = async (data: any) => {
+      if (!businessId || !user?.id) {
+        alert('User context not loaded. Please refresh and try again.');
+        return;
+      }
+      await createStaff({ businessId, userId: user.id, ...data });
+      setStaffModalOpen(false);
+    };
+    const handleCreateService = async (data: any) => {
+      if (!businessId) return;
+      await createService({ businessId, ...data });
+      setServiceModalOpen(false);
+    };
+
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Business Information</CardTitle>
+            <CardDescription>Manage your business details and working hours</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="businessName">Business Name</Label>
+                <Input id="businessName" defaultValue="John Doe Consulting" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="businessType">Business Type</Label>
+                <Select defaultValue="consulting">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="consulting">Consulting</SelectItem>
+                    <SelectItem value="healthcare">Healthcare</SelectItem>
+                    <SelectItem value="education">Education</SelectItem>
+                    <SelectItem value="legal">Legal</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Business Address</Label>
+              <Input id="address" defaultValue="123 Business St, New York, NY 10001" />
+            </div>
+
+            <div className="space-y-4">
+              <Label>Working Hours</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                  <div key={day} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Switch defaultChecked={day !== "Sunday"} />
+                      <span className="font-medium">{day}</span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Input className="w-20 h-8" defaultValue="09:00" />
+                      <span>-</span>
+                      <Input className="w-20 h-8" defaultValue="17:00" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Staff Management */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-lg">Staff</Label>
+                <Button onClick={() => setStaffModalOpen(true)} size="sm">Add Staff</Button>
+              </div>
+              {staffLoading ? (
+                <div className="text-muted-foreground text-sm">Loading staff...</div>
+              ) : staff && staff.length === 0 ? (
+                <div className="text-muted-foreground text-sm">No staff members yet.</div>
+              ) : (
+                <ul className="divide-y border rounded-md mt-2">
+                  {staff && staff.map((staff: any) => (
+                    <li key={staff._id} className="flex items-center p-2">
+                      <Avatar className="h-8 w-8 mr-2">
+                        <AvatarImage src={staff.avatar || "/placeholder.svg?height=32&width=32"} />
+                        <AvatarFallback>{staff.name?.slice(0,2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm">{staff.name}</div>
+                        <div className="text-xs text-muted-foreground">{staff.email}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <CreateStaffModal open={staffModalOpen} onClose={() => setStaffModalOpen(false)} onSubmit={handleCreateStaff} />
+            </div>
+
+            {/* Services Management */}
+            <div className="space-y-2 mt-6">
+              <div className="flex items-center justify-between">
+                <Label className="text-lg">Services</Label>
+                <Button onClick={() => setServiceModalOpen(true)} size="sm">Add Service</Button>
+              </div>
+              {servicesLoading ? (
+                <div className="text-muted-foreground text-sm">Loading services...</div>
+              ) : services && services.length === 0 ? (
+                <div className="text-muted-foreground text-sm">No services yet.</div>
+              ) : (
+                <ul className="divide-y border rounded-md mt-2">
+                  {services && services.map((service: any) => (
+                    <li key={service._id} className="flex items-center p-2">
+                      <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: service.color || '#888' }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm">{service.name}</div>
+                        <div className="text-xs text-muted-foreground">{service.description}</div>
+                      </div>
+                      <div className="text-xs ml-2">{service.duration} min</div>
+                      <div className="text-xs ml-4">${(service.price/100).toFixed(2)}</div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <CreateServiceModal open={serviceModalOpen} onClose={() => setServiceModalOpen(false)} onSubmit={handleCreateService} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   const NotificationSettings = () => (
     <div className="space-y-6">

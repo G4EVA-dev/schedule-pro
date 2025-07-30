@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "Manage your business scheduling",
 };
 
+import { BusinessDataProvider } from "@/components/providers/BusinessDataProvider";
+
 export default function DashboardLayout({
   children,
 }: {
@@ -24,9 +26,11 @@ export default function DashboardLayout({
           {/* <Sidebar /> */}
           <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
           <DashboardHeader /> 
-            <main className="flex-1 p-4 md:p-6">
-              {children}
-            </main>
+            <BusinessDataProvider>
+              <main className="flex-1 p-4 md:p-6">
+                {children}
+              </main>
+            </BusinessDataProvider>
           </div>
         </div>
         <Toaster />

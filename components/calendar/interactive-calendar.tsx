@@ -436,7 +436,12 @@ interface ClientOption {
   avatar?: string;
 }
 
+import { useAuth } from "@/hooks/use-auth";
+
 function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = [], staff = [], services = [] }: AppointmentFormProps & { clients?: ClientOption[]; staff?: StaffOption[]; services?: ServiceOption[] }) {
+  const { user } = useAuth();
+  // DEBUG: Log to verify real-time updates
+  console.log('AppointmentForm clients:', clients, 'staff:', staff, 'services:', services);
   const [formData, setFormData] = useState({
     title: appointment?.title || "",
     client: appointment?.client || "",
@@ -454,7 +459,37 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
   // Add Select dropdowns for staff and services in the form UI below client dropdown.
 
   const [clientSearch, setClientSearch] = useState("");
-  const filteredClients = clients.filter((c) =>
+  // Defensive mapping: ensure id and name are present
+  const mappedClients = clients.map(c => ({
+    id: c.id || '',
+    name: c.name || c.email || 'Unnamed',
+    email: c.email,
+    avatar: c.avatar
+  }));
+  let mappedStaff = staff.map(s => ({
+    id: s.id || '',
+    name: s.name || s.email || 'Unnamed',
+    email: s.email,
+    avatar: s.avatar
+  }));
+  // If no staff, inject owner (current user) as default staff
+  if (mappedStaff.length === 0 && user) {
+    mappedStaff = [{
+      id: user.id || '',
+      name: user.name || user.email || 'Owner',
+      email: user.email,
+      avatar: undefined,
+    }];
+  }
+  const mappedServices = services.map(s => ({
+    id: s.id || '',
+    name: s.name || 'Unnamed',
+    description: s.description,
+    duration: s.duration,
+    price: s.price,
+    color: s.color
+  }));
+  const filteredClients = mappedClients.filter((c) =>
     c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (c.email?.toLowerCase().includes(clientSearch.toLowerCase()) ?? false)
   );
@@ -495,10 +530,10 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
           value={formData.client}
           onValueChange={val => setFormData({ ...formData, client: val })}
           required
-          disabled={!clients.length}
+          disabled={!mappedClients.length}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder={clients.length ? "Select client" : "No clients found"} />
+            <SelectValue placeholder={mappedClients.length ? "Select client" : "No clients found"} />
           </SelectTrigger>
           <SelectContent className="max-h-60 overflow-y-auto">
             <div className="sticky top-0 z-10 bg-white px-2 py-1">
@@ -508,16 +543,12 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
                 placeholder="Search clients..."
                 value={clientSearch}
                 onChange={e => setClientSearch(e.target.value)}
-                disabled={!clients.length}
+                disabled={!mappedClients.length}
               />
             </div>
             {filteredClients.length ? (
               filteredClients.map((client) => (
                 <SelectItem key={client.id} value={client.id} className="flex items-center space-x-2">
-                  {/* <Avatar className="h-6 w-6 mr-2"> 
-                    <AvatarImage src={client.avatar || "/placeholder.svg?height=5&width=5"} />
-                    <AvatarFallback>{client.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
-                  </Avatar> */}
                   <span className="truncate font-medium">{client.name}</span>
                   {client.email && <span className="ml-2 text-xs text-slate-500 truncate">{client.email}</span>}
                 </SelectItem>
@@ -554,6 +585,60 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
+          <Label htmlFor="staff">Staff</Label>
+          <Select
+            value={formData.staffId}
+            onValueChange={val => setFormData({ ...formData, staffId: val })}
+            required
+            disabled={!mappedStaff.length}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={mappedStaff.length ? "Select staff" : "No staff found"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              {mappedStaff.length ? (
+                mappedStaff.map((staff) => (
+                  <SelectItem key={staff.id} value={staff.id} className="flex items-center space-x-2">
+                    <span className="truncate font-medium">{staff.name}</span>
+                    {staff.email && <span className="ml-2 text-xs text-slate-500 truncate">{staff.email}</span>}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-slate-500">No staff found</div>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="service">Service</Label>
+          <Select
+            value={formData.serviceId}
+            onValueChange={val => setFormData({ ...formData, serviceId: val })}
+            required
+            disabled={!mappedServices.length}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={mappedServices.length ? "Select service" : "No services found"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              {mappedServices.length ? (
+                mappedServices.map((service) => (
+                  <SelectItem key={service.id} value={service.id} className="flex items-center space-x-2">
+                    <span className="truncate font-medium">{service.name}</span>
+                    {service.duration && <span className="ml-2 text-xs text-slate-500 truncate">{service.duration} min</span>}
+                    {service.price && <span className="ml-2 text-xs text-slate-500 truncate">${(service.price/100).toFixed(2)}</span>}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-slate-500">No services found</div>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
           <Label htmlFor="type">Type</Label>
           <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
             <SelectTrigger>
@@ -564,32 +649,6 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
                 <SelectItem key={key} value={key}>
                   {label}
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="staff">Staff</Label>
-          <Select value={formData.staffId} onValueChange={value => setFormData(f => ({ ...f, staffId: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select staff" />
-            </SelectTrigger>
-            <SelectContent>
-              {staff.map((s: any) => (
-                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="service">Service</Label>
-          <Select value={formData.serviceId} onValueChange={value => setFormData(f => ({ ...f, serviceId: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select service" />
-            </SelectTrigger>
-            <SelectContent>
-              {services.map((svc: any) => (
-                <SelectItem key={svc.id} value={svc.id}>{svc.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
