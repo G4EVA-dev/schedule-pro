@@ -25,6 +25,8 @@ import {
 } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { DurationPicker } from "@/components/ui/duration-picker"
 import { useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 
@@ -486,8 +488,8 @@ function AppointmentForm({
     client: appointment?.client || "",
     staffId: appointment?.staffId || "",
     serviceId: appointment?.serviceId || "",
-    startTime: appointment?.startTime ? format(appointment.startTime, "yyyy-MM-dd'T'HH:mm") : "",
-    endTime: appointment?.endTime ? format(appointment.endTime, "yyyy-MM-dd'T'HH:mm") : "",
+    startTime: appointment?.startTime || undefined,
+    endTime: appointment?.endTime || undefined,
     type: appointment?.type || ("consultation" as const),
     status: appointment?.status || ("scheduled" as const),
   })
@@ -560,27 +562,59 @@ function AppointmentForm({
     (c.email?.toLowerCase().includes(clientSearch.toLowerCase()) ?? false)
   )
 
+  // Find selected service for duration picker
+  const selectedService = mappedServices.find(s => s.id === formData.serviceId)
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required fields
+    if (!formData.title.trim()) {
+      window.alert("Please enter an appointment title.");
+      return;
+    }
+    
+    if (!formData.client) {
+      window.alert("Please select a client.");
+      return;
+    }
 
     // Validate staff selection
     if (!formData.staffId) {
       window.alert("Please select a staff member.");
-      return; // Do not close modal
+      return;
     }
+    
     // Validate service selection
     if (!formData.serviceId || formData.serviceId === 'default-demo-service') {
       window.alert("Please select a real service.");
-      return; // Do not close modal
+      return;
+    }
+
+    // Validate date and time
+    if (!formData.startTime) {
+      window.alert("Please select a start date and time.");
+      return;
+    }
+    
+    if (!formData.endTime) {
+      window.alert("Please select an end time.");
+      return;
+    }
+    
+    if (formData.endTime <= formData.startTime) {
+      window.alert("End time must be after start time.");
+      return;
     }
 
     const appointmentData = {
       title: formData.title,
       client: formData.client,
+      clientId: formData.client,
       staffId: formData.staffId,
       serviceId: formData.serviceId,
-      startTime: new Date(formData.startTime),
-      endTime: new Date(formData.endTime),
+      startTime: formData.startTime!,
+      endTime: formData.endTime!,
       type: formData.type,
       status: formData.status,
       color: appointmentTypes[formData.type].color,
@@ -639,27 +673,22 @@ function AppointmentForm({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="startTime">Start Time</Label>
-          <Input
-            id="startTime"
-            type="datetime-local"
-            value={formData.startTime}
-            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="endTime">End Time</Label>
-          <Input
-            id="endTime"
-            type="datetime-local"
-            value={formData.endTime}
-            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-            required
-          />
-        </div>
+      {/* Enhanced Date & Time Selection */}
+      <div className="space-y-4">
+        <DateTimePicker
+          date={formData.startTime}
+          onDateChange={(date) => setFormData({ ...formData, startTime: date })}
+          label="Start Date & Time"
+          placeholder="Select appointment start time"
+        />
+        
+        <DurationPicker
+          startTime={formData.startTime}
+          endTime={formData.endTime}
+          onEndTimeChange={(endTime) => setFormData({ ...formData, endTime })}
+          serviceDuration={selectedService?.duration}
+          label="Duration"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
