@@ -489,7 +489,7 @@ function AppointmentForm({
     startTime: appointment?.startTime ? format(appointment.startTime, "yyyy-MM-dd'T'HH:mm") : "",
     endTime: appointment?.endTime ? format(appointment.endTime, "yyyy-MM-dd'T'HH:mm") : "",
     type: appointment?.type || ("consultation" as const),
-    status: appointment?.status || ("confirmed" as const),
+    status: appointment?.status || ("scheduled" as const),
   })
 
   const [clientSearch, setClientSearch] = useState("")
@@ -739,9 +739,11 @@ function AppointmentForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
               <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="no_show">No Show</SelectItem>
             </SelectContent>
           </Select>
         </div>
