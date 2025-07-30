@@ -20,8 +20,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.className, "min-h-screen bg-background")}>
+    <div className="flex h-screen overflow-hidden">
+      {/* <Sidebar /> */}
         <div className="flex h-screen overflow-hidden">
           {/* <Sidebar /> */}
           <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
@@ -34,7 +34,6 @@ export default function DashboardLayout({
           </div>
         </div>
         <Toaster />
-      </body>
-    </html>
+      </div>
   );
 }

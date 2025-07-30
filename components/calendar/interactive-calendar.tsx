@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight, Plus, Clock, User, Trash2, MoreHorizontal } from "lucide-react"
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import {
   format,
   addDays,
@@ -24,6 +24,7 @@ import {
   subMonths,
 } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
+import { useAuth } from "@/hooks/use-auth"
 
 interface StaffOption {
   id: string;
@@ -55,6 +56,13 @@ interface Appointment {
   staffId?: string
   serviceId?: string
   days?: number[]
+}
+
+interface ClientOption {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
 }
 
 interface CalendarProps {
@@ -391,6 +399,8 @@ export function InteractiveCalendar({
             }}
             onCancel={() => setIsCreateDialogOpen(false)}
             clients={clients}
+            staff={staff}
+            services={services}
           />
         </DialogContent>
       </Dialog>
@@ -414,6 +424,9 @@ export function InteractiveCalendar({
                 setSelectedAppointment(null)
               }}
               onCancel={() => setSelectedAppointment(null)}
+              clients={clients}
+              staff={staff}
+              services={services}
             />
           )}
         </DialogContent>
@@ -427,21 +440,25 @@ interface AppointmentFormProps {
   onSubmit: (appointment: Omit<Appointment, "id">) => void
   onDelete?: () => void
   onCancel: () => void
+  clients?: ClientOption[]
+  staff?: StaffOption[]
+  services?: ServiceOption[]
 }
 
-interface ClientOption {
-  id: string;
-  name: string;
-  email?: string;
-  avatar?: string;
-}
-
-import { useAuth } from "@/hooks/use-auth";
-
-function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = [], staff = [], services = [] }: AppointmentFormProps & { clients?: ClientOption[]; staff?: StaffOption[]; services?: ServiceOption[] }) {
-  const { user } = useAuth();
+function AppointmentForm({ 
+  appointment, 
+  onSubmit, 
+  onDelete, 
+  onCancel, 
+  clients = [], 
+  staff = [], 
+  services = [] 
+}: AppointmentFormProps) {
+  const { user } = useAuth()
+  
   // DEBUG: Log to verify real-time updates
-  console.log('AppointmentForm clients:', clients, 'staff:', staff, 'services:', services);
+  console.log('AppointmentForm clients:', clients, 'staff:', staff, 'services:', services)
+  
   const [formData, setFormData] = useState({
     title: appointment?.title || "",
     client: appointment?.client || "",
@@ -453,46 +470,65 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
     status: appointment?.status || ("confirmed" as const),
   })
 
-  // For client dropdown search
+  const [clientSearch, setClientSearch] = useState("")
 
-  // Staff and Services dropdowns
-  // Add Select dropdowns for staff and services in the form UI below client dropdown.
-
-  const [clientSearch, setClientSearch] = useState("");
-  // Defensive mapping: ensure id and name are present
-  const mappedClients = clients.map(c => ({
-    id: c.id || '',
+  // Defensive mapping: ensure id and name are present with unique IDs
+  const mappedClients = clients.map((c, index) => ({
+    id: c.id || `client-${index}`,
     name: c.name || c.email || 'Unnamed',
     email: c.email,
     avatar: c.avatar
-  }));
-  let mappedStaff = staff.map(s => ({
-    id: s.id || '',
+  })).filter(c => c.id) // Remove any items with empty IDs
+
+  let mappedStaff = staff.map((s, index) => ({
+    id: s.id || `staff-${index}`,
     name: s.name || s.email || 'Unnamed',
     email: s.email,
     avatar: s.avatar
-  }));
+  })).filter(s => s.id) // Remove any items with empty IDs
+
   // If no staff, inject owner (current user) as default staff
   if (mappedStaff.length === 0 && user) {
     mappedStaff = [{
-      id: user.id || '',
+      id: user.id || 'default-owner',
       name: user.name || user.email || 'Owner',
       email: user.email,
       avatar: undefined,
-    }];
+    }]
   }
-  const mappedServices = services.map(s => ({
-    id: s.id || '',
+
+  let mappedServices = services.map((s, index) => ({
+    id: s.id || `service-${index}`,
     name: s.name || 'Unnamed',
     description: s.description,
     duration: s.duration,
     price: s.price,
     color: s.color
-  }));
+  })).filter(s => s.id) // Remove any items with empty IDs
+
+  // If no services, inject a default demo service
+  if (mappedServices.length === 0) {
+    mappedServices = [{
+      id: 'default-demo-service',
+      name: 'General Service',
+      description: 'A default service for demo/MVP',
+      duration: 30,
+      price: 0,
+      color: 'bg-gray-400',
+    }]
+  }
+
+  // Auto-select staff if only one (owner) is available and staffId is empty
+  useEffect(() => {
+    if (mappedStaff.length === 1 && !formData.staffId) {
+      setFormData(prev => ({ ...prev, staffId: mappedStaff[0].id }))
+    }
+  }, [mappedStaff, formData.staffId])
+
   const filteredClients = mappedClients.filter((c) =>
     c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
     (c.email?.toLowerCase().includes(clientSearch.toLowerCase()) ?? false)
-  );
+  )
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -597,10 +633,10 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = 
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto">
               {mappedStaff.length ? (
-                mappedStaff.map((staff) => (
-                  <SelectItem key={staff.id} value={staff.id} className="flex items-center space-x-2">
-                    <span className="truncate font-medium">{staff.name}</span>
-                    {staff.email && <span className="ml-2 text-xs text-slate-500 truncate">{staff.email}</span>}
+                mappedStaff.map((staffMember) => (
+                  <SelectItem key={staffMember.id} value={staffMember.id} className="flex items-center space-x-2">
+                    <span className="truncate font-medium">{staffMember.name}</span>
+                    {staffMember.email && <span className="ml-2 text-xs text-slate-500 truncate">{staffMember.email}</span>}
                   </SelectItem>
                 ))
               ) : (

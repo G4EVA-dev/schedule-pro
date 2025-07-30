@@ -42,11 +42,42 @@ export const createAppointment = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("appointments", {
+    // Save appointment
+    const appointmentId = await ctx.db.insert("appointments", {
       ...args,
       remindersSent: [],
       createdAt: Date.now(),
     });
+
+    // Fetch client, staff, and service details
+    const client = await ctx.db.get(args.clientId);
+    const staff = await ctx.db.get(args.staffId);
+    const service = await ctx.db.get(args.serviceId);
+
+    // Send appointment creation email to client (if email present)
+    if (client?.email) {
+      try {
+        // Dynamically import email utility (works in Convex)
+        const { sendAppointmentEmail } = await import("../lib/appointmentEmail");
+        await sendAppointmentEmail({
+          to: client.email,
+          subject: `Your appointment is confirmed: ${service?.name || "Service"}`,
+          appointment: {
+            clientName: client.name || client.email,
+            staffName: staff?.name || "Staff",
+            serviceName: service?.name || "Service",
+            startTime: new Date(args.startTime),
+            endTime: new Date(args.endTime),
+            notes: args.notes,
+          },
+          type: "creation",
+        });
+      } catch (error) {
+        console.error("Failed to send appointment email:", error);
+      }
+    }
+
+    return appointmentId;
   },
 });
 
