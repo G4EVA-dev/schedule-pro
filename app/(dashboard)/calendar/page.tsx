@@ -37,6 +37,10 @@ interface Appointment {
   status: "confirmed" | "pending" | "cancelled"
   color: string
   avatar?: string
+  clientId?: string;
+  staffId?: string;
+  serviceId?: string;
+  days?: number[];
 }
 
 const fadeInUp = {
@@ -63,8 +67,12 @@ export default function CalendarPage() {
   const { businessId, user, isLoading: authLoading } = useAuth();
   const appointmentsData = useQuery(api.appointments.getAppointments, businessId ? { businessId } : 'skip');
   const clientsData = useQuery(api.clients.getClients, businessId ? { businessId } : 'skip');
+  const staffData = useQuery(api.staff.getStaff, businessId ? { businessId } : 'skip');
+  const servicesData = useQuery(api.services.getServices, businessId ? { businessId } : 'skip');
   const clientsLoading = !clientsData && businessId;
   const clients = clientsData || [];
+  const staff = staffData || [];
+  const services = servicesData || [];
   const createAppointment = useMutation(api.appointments.createAppointment);
   const updateAppointment = useMutation(api.appointments.updateAppointment);
   const deleteAppointment = useMutation(api.appointments.deleteAppointment);
@@ -155,27 +163,41 @@ export default function CalendarPage() {
   // Convex handlers
   const handleAppointmentCreate = async (newAppointment: Omit<Appointment, "id">) => {
     if (!businessId) return;
-    // Use the first available client as a placeholder (replace with UI selection later)
-    const selectedClientId = clients.length > 0 ? clients[0]._id : undefined;
-    if (!selectedClientId) {
-      alert("No clients found. Please add a client first.");
+    if (!newAppointment.client) {
+      alert("Please select a client.");
+      return;
+    }
+    if (!newAppointment.staffId) {
+      alert("Please select a staff member.");
+      return;
+    }
+    if (!newAppointment.serviceId) {
+      alert("Please select a service.");
+      return;
+    }
+    if (!newAppointment.startTime || !newAppointment.endTime) {
+      alert("Please select start and end time.");
       return;
     }
     await createAppointment({
       businessId,
-      serviceId: "service_dummy_id" as any, // Replace with actual service selection
-      staffId: "staff_dummy_id" as any, // Replace with actual staff selection
-      clientId: selectedClientId,
+      serviceId: newAppointment.serviceId,
+      staffId: newAppointment.staffId,
+      clientId: newAppointment.client,
       startTime: newAppointment.startTime.getTime(),
+      endTime: newAppointment.endTime.getTime(),
+      status: newAppointment.status || "confirmed",
+      notes: newAppointment.title,
     });
   };
-
 
   const handleAppointmentUpdate = async (updatedAppointment: Appointment) => {
     await updateAppointment({
       id: updatedAppointment.id as any,
       updates: {
-        // Map only updatable fields
+        staffId: updatedAppointment.staffId,
+        serviceId: updatedAppointment.serviceId,
+        clientId: updatedAppointment.client,
         startTime: updatedAppointment.startTime.getTime(),
         endTime: updatedAppointment.endTime.getTime(),
         status: updatedAppointment.status as any,
@@ -355,6 +377,14 @@ export default function CalendarPage() {
               onAppointmentUpdate={handleAppointmentUpdate}
               onAppointmentDelete={handleAppointmentDelete}
               onAppointmentCreate={handleAppointmentCreate}
+              clients={clients.map((c: any) => ({
+                id: c._id,
+                name: c.name,
+                email: c.email,
+                avatar: c.avatar || undefined,
+              }))}
+              staff={staff}
+              services={services}
             />
           </motion.div>
         </main>

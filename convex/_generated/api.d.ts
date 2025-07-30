@@ -19,6 +19,8 @@ import type * as authActions from "../authActions.js";
 import type * as clients from "../clients.js";
 import type * as otpActions from "../otpActions.js";
 import type * as otps from "../otps.js";
+import type * as services from "../services.js";
+import type * as staff from "../staff.js";
 import type * as users from "../users.js";
 
 /**
@@ -36,6 +38,8 @@ declare const fullApi: ApiFromModules<{
   clients: typeof clients;
   otpActions: typeof otpActions;
   otps: typeof otps;
+  services: typeof services;
+  staff: typeof staff;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

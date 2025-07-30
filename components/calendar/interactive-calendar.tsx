@@ -23,6 +23,23 @@ import {
   addMonths,
   subMonths,
 } from "date-fns"
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
+
+interface StaffOption {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+}
+
+interface ServiceOption {
+  id: string;
+  name: string;
+  description?: string;
+  duration?: number;
+  price?: number;
+  color?: string;
+}
 
 interface Appointment {
   id: string
@@ -34,6 +51,10 @@ interface Appointment {
   status: "confirmed" | "pending" | "cancelled"
   color: string
   avatar?: string
+  clientId?: string
+  staffId?: string
+  serviceId?: string
+  days?: number[]
 }
 
 interface CalendarProps {
@@ -41,6 +62,7 @@ interface CalendarProps {
   onAppointmentUpdate: (appointment: Appointment) => void
   onAppointmentDelete: (id: string) => void
   onAppointmentCreate: (appointment: Omit<Appointment, "id">) => void
+  clients?: ClientOption[]
 }
 
 const appointmentTypes = {
@@ -55,7 +77,10 @@ export function InteractiveCalendar({
   onAppointmentUpdate,
   onAppointmentDelete,
   onAppointmentCreate,
-}: CalendarProps) {
+  clients = [],
+  staff = [],
+  services = [],
+}: CalendarProps & { staff?: StaffOption[]; services?: ServiceOption[] }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<"month" | "week" | "day">("month")
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
@@ -69,7 +94,7 @@ export function InteractiveCalendar({
   const startDate = startOfWeek(monthStart)
   const endDate = endOfWeek(monthEnd)
 
-  const days = []
+  const days: Date[] = []
   let day = startDate
   while (day <= endDate) {
     days.push(day)
@@ -365,6 +390,7 @@ export function InteractiveCalendar({
               setIsCreateDialogOpen(false)
             }}
             onCancel={() => setIsCreateDialogOpen(false)}
+            clients={clients}
           />
         </DialogContent>
       </Dialog>
@@ -403,15 +429,35 @@ interface AppointmentFormProps {
   onCancel: () => void
 }
 
-function AppointmentForm({ appointment, onSubmit, onDelete, onCancel }: AppointmentFormProps) {
+interface ClientOption {
+  id: string;
+  name: string;
+  email?: string;
+  avatar?: string;
+}
+
+function AppointmentForm({ appointment, onSubmit, onDelete, onCancel, clients = [], staff = [], services = [] }: AppointmentFormProps & { clients?: ClientOption[]; staff?: StaffOption[]; services?: ServiceOption[] }) {
   const [formData, setFormData] = useState({
     title: appointment?.title || "",
     client: appointment?.client || "",
+    staffId: appointment?.staffId || "",
+    serviceId: appointment?.serviceId || "",
     startTime: appointment?.startTime ? format(appointment.startTime, "yyyy-MM-dd'T'HH:mm") : "",
     endTime: appointment?.endTime ? format(appointment.endTime, "yyyy-MM-dd'T'HH:mm") : "",
     type: appointment?.type || ("consultation" as const),
     status: appointment?.status || ("confirmed" as const),
   })
+
+  // For client dropdown search
+
+  // Staff and Services dropdowns
+  // Add Select dropdowns for staff and services in the form UI below client dropdown.
+
+  const [clientSearch, setClientSearch] = useState("");
+  const filteredClients = clients.filter((c) =>
+    c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
+    (c.email?.toLowerCase().includes(clientSearch.toLowerCase()) ?? false)
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -424,7 +470,7 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel }: Appointm
       type: formData.type,
       status: formData.status,
       color: appointmentTypes[formData.type].color,
-      avatar: `/placeholder.svg?height=32&width=32`,
+      avatar: `/placeholder.svg?height=6&width=6`,
     }
 
     onSubmit(appointmentData)
@@ -445,13 +491,42 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel }: Appointm
 
       <div className="space-y-2">
         <Label htmlFor="client">Client</Label>
-        <Input
-          id="client"
+        <Select
           value={formData.client}
-          onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-          placeholder="Client name"
+          onValueChange={val => setFormData({ ...formData, client: val })}
           required
-        />
+          disabled={!clients.length}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder={clients.length ? "Select client" : "No clients found"} />
+          </SelectTrigger>
+          <SelectContent className="max-h-60 overflow-y-auto">
+            <div className="sticky top-0 z-10 bg-white px-2 py-1">
+              <Input
+                autoFocus
+                className="w-full"
+                placeholder="Search clients..."
+                value={clientSearch}
+                onChange={e => setClientSearch(e.target.value)}
+                disabled={!clients.length}
+              />
+            </div>
+            {filteredClients.length ? (
+              filteredClients.map((client) => (
+                <SelectItem key={client.id} value={client.id} className="flex items-center space-x-2">
+                  {/* <Avatar className="h-6 w-6 mr-2"> 
+                    <AvatarImage src={client.avatar || "/placeholder.svg?height=5&width=5"} />
+                    <AvatarFallback>{client.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+                  </Avatar> */}
+                  <span className="truncate font-medium">{client.name}</span>
+                  {client.email && <span className="ml-2 text-xs text-slate-500 truncate">{client.email}</span>}
+                </SelectItem>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-sm text-slate-500">No clients found</div>
+            )}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -489,6 +564,32 @@ function AppointmentForm({ appointment, onSubmit, onDelete, onCancel }: Appointm
                 <SelectItem key={key} value={key}>
                   {label}
                 </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="staff">Staff</Label>
+          <Select value={formData.staffId} onValueChange={value => setFormData(f => ({ ...f, staffId: value }))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select staff" />
+            </SelectTrigger>
+            <SelectContent>
+              {staff.map((s: any) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="service">Service</Label>
+          <Select value={formData.serviceId} onValueChange={value => setFormData(f => ({ ...f, serviceId: value }))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select service" />
+            </SelectTrigger>
+            <SelectContent>
+              {services.map((svc: any) => (
+                <SelectItem key={svc.id} value={svc.id}>{svc.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
