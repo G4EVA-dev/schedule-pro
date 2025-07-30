@@ -29,6 +29,9 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { useAuth } from "@/hooks/use-auth"
 
 interface Client {
   id: string
@@ -70,73 +73,46 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
-  const [clients, setClients] = useState<Client[]>([
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      email: "sarah.johnson@email.com",
-      phone: "+1 (555) 123-4567",
-      address: "123 Main St, New York, NY 10001",
-      status: "active",
-      totalAppointments: 12,
-      totalSpent: 1800,
-      lastVisit: "2024-01-20",
-      avatar: "/placeholder.svg?height=40&width=40",
-      notes: "Prefers morning appointments. Regular client since 2023.",
-    },
-    {
-      id: "2",
-      name: "Mike Chen",
-      email: "mike.chen@email.com",
-      phone: "+1 (555) 234-5678",
-      address: "456 Oak Ave, Los Angeles, CA 90210",
-      status: "active",
-      totalAppointments: 8,
-      totalSpent: 1200,
-      lastVisit: "2024-01-18",
-      avatar: "/placeholder.svg?height=40&width=40",
-      notes: "Tech entrepreneur. Flexible with scheduling.",
-    },
-    {
-      id: "3",
-      name: "Emma Davis",
-      email: "emma.davis@email.com",
-      phone: "+1 (555) 345-6789",
-      address: "789 Pine St, Chicago, IL 60601",
-      status: "pending",
-      totalAppointments: 3,
-      totalSpent: 450,
-      lastVisit: "2024-01-15",
-      avatar: "/placeholder.svg?height=40&width=40",
-      notes: "New client. Interested in long-term engagement.",
-    },
-    {
-      id: "4",
-      name: "James Wilson",
-      email: "james.wilson@email.com",
-      phone: "+1 (555) 456-7890",
-      address: "321 Elm St, Miami, FL 33101",
-      status: "inactive",
-      totalAppointments: 15,
-      totalSpent: 2250,
-      lastVisit: "2023-12-10",
-      avatar: "/placeholder.svg?height=40&width=40",
-      notes: "Former regular client. May return in Q2.",
-    },
-    {
-      id: "5",
-      name: "Lisa Anderson",
-      email: "lisa.anderson@email.com",
-      phone: "+1 (555) 567-8901",
-      address: "654 Maple Dr, Seattle, WA 98101",
-      status: "active",
-      totalAppointments: 6,
-      totalSpent: 900,
-      lastVisit: "2024-01-22",
-      avatar: "/placeholder.svg?height=40&width=40",
-      notes: "Corporate client. Books monthly sessions.",
-    },
-  ])
+  // Convex and Auth
+  const { businessId } = useAuth();
+  const clientsData = useQuery(api.clients.getClients, businessId ? { businessId } : 'skip');
+  const createClient = useMutation(api.clients.createClient);
+  const clientsLoading = businessId && !clientsData;
+  const clients: Client[] = clientsData || [];
+
+  // Add Client Form State
+  const [form, setForm] = useState({ name: '', email: '', phone: '', notes: '' });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddClient = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    if (!form.name || !form.email) {
+      setFormError('Name and email are required.');
+      return;
+    }
+    if (!businessId) {
+      setFormError('Business context missing.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await createClient({
+        businessId,
+        name: form.name,
+        email: form.email,
+        phone: form.phone || undefined,
+        notes: form.notes || undefined,
+      });
+      setForm({ name: '', email: '', phone: '', notes: '' });
+      setIsCreateDialogOpen(false);
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to add client.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const sidebarItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -146,7 +122,7 @@ export default function ClientsPage() {
     { icon: Settings, label: "Settings", href: "/settings" },
   ]
 
-  const filteredClients = clients.filter((client) => {
+  const filteredClients = clients.filter((client: Client) => {
     const matchesSearch =
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       client.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -165,7 +141,7 @@ export default function ClientsPage() {
     },
     {
       title: "Active Clients",
-      value: clients.filter((c) => c.status === "active").length.toString(),
+      value: clients.filter((c: Client) => c.status === "active").length.toString(),
       change: "85% active rate",
       icon: Users,
       color: "text-green-600",
@@ -173,7 +149,7 @@ export default function ClientsPage() {
     },
     {
       title: "Total Revenue",
-      value: `$${clients.reduce((sum, c) => sum + c.totalSpent, 0).toLocaleString()}`,
+      value: `$${clients.reduce((sum: number, c: Client) => sum + c.totalSpent, 0).toLocaleString()}`,
       change: "+18% this month",
       icon: BarChart3,
       color: "text-purple-600",
@@ -181,7 +157,7 @@ export default function ClientsPage() {
     },
     {
       title: "Avg. per Client",
-      value: `$${Math.round(clients.reduce((sum, c) => sum + c.totalSpent, 0) / clients.length)}`,
+      value: `$${Math.round(clients.reduce((sum: number, c: Client) => sum + c.totalSpent, 0) / clients.length) || 0}`,
       change: "+5% this month",
       icon: BarChart3,
       color: "text-orange-600",
@@ -332,16 +308,18 @@ export default function ClientsPage() {
                       <Download className="h-4 w-4 mr-2" />
                       Export
                     </Button>
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Client
-                    </Button>
+                    {businessId && (
+                      <Button onClick={() => setIsCreateDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Client
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredClients.map((client, index) => (
+                  {filteredClients.map((client: Client, index: number) => (
                     <motion.div
                       key={client.id}
                       className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group"
@@ -355,7 +333,7 @@ export default function ClientsPage() {
                           <AvatarFallback>
                             {client.name
                               .split(" ")
-                              .map((n) => n[0])
+                              .map((n: string) => n[0])
                               .join("")}
                           </AvatarFallback>
                         </Avatar>
@@ -416,6 +394,60 @@ export default function ClientsPage() {
         </main>
       </div>
 
+      {/* Add Client Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Client</DialogTitle>
+            <DialogDescription>Enter client details below.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleAddClient} className="space-y-4">
+            <div>
+              <Label>Name *</Label>
+              <Input
+                value={form.name}
+                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <Label>Email *</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <Label>Phone</Label>
+              <Input
+                value={form.phone}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                disabled={isSubmitting}
+              />
+            </div>
+            <div>
+              <Label>Notes</Label>
+              <Input
+                value={form.notes}
+                onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                disabled={isSubmitting}
+              />
+            </div>
+            {formError && <div className="text-red-500 text-sm">{formError}</div>}
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="ghost" onClick={() => setIsCreateDialogOpen(false)} disabled={isSubmitting}>Cancel</Button>
+              <Button type="submit" disabled={isSubmitting || !!clientsLoading}>
+                {isSubmitting ? 'Adding...' : 'Add Client'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Client Details Dialog */}
       <Dialog open={!!selectedClient} onOpenChange={() => setSelectedClient(null)}>
         <DialogContent className="sm:max-w-[600px]">
@@ -431,7 +463,7 @@ export default function ClientsPage() {
                   <AvatarFallback>
                     {selectedClient.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")}
                   </AvatarFallback>
                 </Avatar>

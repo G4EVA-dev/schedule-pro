@@ -22,6 +22,8 @@ import {
 import { useState, useMemo } from "react"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { useAuth } from "@/hooks/use-auth"
+// Import clients query (after Convex codegen, api.clients.getClients will exist)
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
@@ -58,9 +60,11 @@ const staggerChild = {
 
 export default function CalendarPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  // TODO: Replace with actual businessId from context or auth
-  const businessId = "business_dummy_id" as any;
-  const appointmentsData = useQuery(api.appointments.getAppointments, businessId ? { businessId } : undefined);
+  const { businessId, user, isLoading: authLoading } = useAuth();
+  const appointmentsData = useQuery(api.appointments.getAppointments, businessId ? { businessId } : 'skip');
+  const clientsData = useQuery(api.clients.getClients, businessId ? { businessId } : 'skip');
+  const clientsLoading = !clientsData && businessId;
+  const clients = clientsData || [];
   const createAppointment = useMutation(api.appointments.createAppointment);
   const updateAppointment = useMutation(api.appointments.updateAppointment);
   const deleteAppointment = useMutation(api.appointments.deleteAppointment);
@@ -151,18 +155,21 @@ export default function CalendarPage() {
   // Convex handlers
   const handleAppointmentCreate = async (newAppointment: Omit<Appointment, "id">) => {
     if (!businessId) return;
-    // TODO: Map UI fields to Convex schema fields
+    // Use the first available client as a placeholder (replace with UI selection later)
+    const selectedClientId = clients.length > 0 ? clients[0]._id : undefined;
+    if (!selectedClientId) {
+      alert("No clients found. Please add a client first.");
+      return;
+    }
     await createAppointment({
       businessId,
       serviceId: "service_dummy_id" as any, // Replace with actual service selection
       staffId: "staff_dummy_id" as any, // Replace with actual staff selection
-      clientId: "client_dummy_id" as any, // Replace with actual client selection
+      clientId: selectedClientId,
       startTime: newAppointment.startTime.getTime(),
-      endTime: newAppointment.endTime.getTime(),
-      status: newAppointment.status as any,
-      notes: newAppointment.title, // Or use a notes field from UI
     });
   };
+
 
   const handleAppointmentUpdate = async (updatedAppointment: Appointment) => {
     await updateAppointment({
@@ -218,6 +225,10 @@ export default function CalendarPage() {
 
   // Use real appointments if available, otherwise use mock data
   const displayAppointments = appointments.length > 0 ? appointments : mockAppointments;
+
+  if (authLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
 
   return (
     <div className="flex h-screen bg-slate-50">
