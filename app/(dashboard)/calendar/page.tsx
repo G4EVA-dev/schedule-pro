@@ -34,13 +34,13 @@ interface Appointment {
   startTime: Date
   endTime: Date
   type: "consultation" | "follow-up" | "meeting" | "review"
-  status: "confirmed" | "pending" | "cancelled"
+  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show" | "pending"
   color: string
   avatar?: string
-  clientId?: string;
-  staffId?: string;
-  serviceId?: string;
-  days?: number[];
+  clientId?: string
+  staffId?: string
+  serviceId?: string
+  days?: number[]
 }
 
 const fadeInUp = {

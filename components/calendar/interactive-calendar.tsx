@@ -52,7 +52,7 @@ interface Appointment {
   startTime: Date
   endTime: Date
   type: "consultation" | "follow-up" | "meeting" | "review"
-  status: "confirmed" | "pending" | "cancelled"
+  status: "scheduled" | "confirmed" | "completed" | "cancelled" | "no_show"
   color: string
   avatar?: string
   clientId?: string
