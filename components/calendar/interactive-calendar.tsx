@@ -25,9 +25,11 @@ import {
 } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
 import { useAuth } from "@/hooks/use-auth"
+import { useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 interface StaffOption {
-  id: string;
+  id: string; // Convex doc ID for staff
   name: string;
   email?: string;
   avatar?: string;
@@ -35,6 +37,7 @@ interface StaffOption {
 
 interface ServiceOption {
   id: string;
+  _id?: string; // Convex doc ID for real services
   name: string;
   description?: string;
   duration?: number;
@@ -89,6 +92,25 @@ export function InteractiveCalendar({
   staff = [],
   services = [],
 }: CalendarProps & { staff?: StaffOption[]; services?: ServiceOption[] }) {
+  const { user, businessId } = useAuth();
+  const createStaff = useMutation(api.staff.createStaff);
+
+  useEffect(() => {
+    // Only run if user and businessId are loaded
+    if (!user?.id || !user?.email || !user?.name || !businessId) return;
+    // Check if owner already has a staff record
+    const ownerHasStaff = staff.some(s => (s as any).userId === user.id || s.email === user.email);
+    if (!ownerHasStaff) {
+      // Auto-create staff record for owner
+      createStaff({
+        businessId,
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        avatar: user.image || undefined,
+      });
+    }
+  }, [user?.id, user?.email, user?.name, user?.image, businessId, staff, createStaff]);
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<"month" | "week" | "day">("month")
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
@@ -480,33 +502,41 @@ function AppointmentForm({
     avatar: c.avatar
   })).filter(c => c.id) // Remove any items with empty IDs
 
-  let mappedStaff = staff.map((s, index) => ({
-    id: s.id || `staff-${index}`,
-    name: s.name || s.email || 'Unnamed',
-    email: s.email,
-    avatar: s.avatar
-  })).filter(s => s.id) // Remove any items with empty IDs
-
-  // If no staff, inject owner (current user) as default staff
-  if (mappedStaff.length === 0 && user) {
-    mappedStaff = [{
-      id: user.id || 'default-owner',
-      name: user.name || user.email || 'Owner',
-      email: user.email,
-      avatar: undefined,
-    }]
+  // Only include owner as staff if they have a staff doc
+  let mappedStaff: StaffOption[] = [];
+  let ownerStaffDoc = null;
+  if (user && staff.length > 0) {
+    // Find staff doc for owner by matching userId or email
+    ownerStaffDoc = staff.find(s => (s as any).userId === user.id || s.email === user.email);
   }
+  // Add all real staff (avoid duplicates)
+  const staffIds = new Set();
+  staff.forEach(s => {
+    if (s.id && !staffIds.has(s.id)) {
+      mappedStaff.push({
+        id: s.id,
+        name: (ownerStaffDoc && s.id === ownerStaffDoc.id) ? ((s.name || s.email || 'Owner') + ' (owner)') : (s.name || s.email || 'Unnamed'),
+        email: s.email,
+        avatar: s.avatar,
+      });
+      staffIds.add(s.id);
+    }
+  });
+  // Do NOT add owner with user.id as staffId; only use staff doc IDs
 
-  let mappedServices = services.map((s, index) => ({
-    id: s.id || `service-${index}`,
-    name: s.name || 'Unnamed',
-    description: s.description,
-    duration: s.duration,
-    price: s.price,
-    color: s.color
-  })).filter(s => s.id) // Remove any items with empty IDs
+  // Always use Convex doc ID (_id) for services if present
+  let mappedServices = services
+    .filter(s => typeof (s._id || s.id) === 'string' && /^[a-zA-Z0-9_-]{15,32}$/.test(s._id || s.id))
+    .map(s => ({
+      id: s._id || s.id,
+      name: s.name || 'Unnamed',
+      description: s.description,
+      duration: s.duration,
+      price: s.price,
+      color: s.color
+    }));
 
-  // If no services, inject a default demo service
+  // If no real services, inject a default demo service
   if (mappedServices.length === 0) {
     mappedServices = [{
       id: 'default-demo-service',
@@ -515,7 +545,7 @@ function AppointmentForm({
       duration: 30,
       price: 0,
       color: 'bg-gray-400',
-    }]
+    }];
   }
 
   // Auto-select staff if only one (owner) is available and staffId is empty
@@ -531,20 +561,33 @@ function AppointmentForm({
   )
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+
+    // Validate staff selection
+    if (!formData.staffId) {
+      window.alert("Please select a staff member.");
+      return; // Do not close modal
+    }
+    // Validate service selection
+    if (!formData.serviceId || formData.serviceId === 'default-demo-service') {
+      window.alert("Please select a real service.");
+      return; // Do not close modal
+    }
 
     const appointmentData = {
       title: formData.title,
       client: formData.client,
+      staffId: formData.staffId,
+      serviceId: formData.serviceId,
       startTime: new Date(formData.startTime),
       endTime: new Date(formData.endTime),
       type: formData.type,
       status: formData.status,
       color: appointmentTypes[formData.type].color,
       avatar: `/placeholder.svg?height=6&width=6`,
-    }
+    };
 
-    onSubmit(appointmentData)
+    onSubmit(appointmentData);
   }
 
   return (

@@ -377,7 +377,12 @@ export default function CalendarPage() {
                 email: c.email,
                 avatar: c.avatar || undefined,
               })) : []}
-              staff={staff || []}
+              staff={staff ? staff.map((s: any) => ({
+                id: s._id,
+                name: s.name,
+                email: s.email,
+                avatar: s.avatar || undefined,
+              })) : []}
               services={services || []}
             />
           </motion.div>
