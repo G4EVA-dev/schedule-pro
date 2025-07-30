@@ -17,6 +17,8 @@ import type * as appointments from "../appointments.js";
 import type * as auth from "../auth.js";
 import type * as authActions from "../authActions.js";
 import type * as clients from "../clients.js";
+import type * as email from "../email.js";
+import type * as http from "../http.js";
 import type * as otpActions from "../otpActions.js";
 import type * as otps from "../otps.js";
 import type * as services from "../services.js";
@@ -36,6 +38,8 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authActions: typeof authActions;
   clients: typeof clients;
+  email: typeof email;
+  http: typeof http;
   otpActions: typeof otpActions;
   otps: typeof otps;
   services: typeof services;

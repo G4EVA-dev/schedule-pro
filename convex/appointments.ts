@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 // Query: Get all appointments for a business (optionally filter by staff or client)
 export const getAppointments = query({
@@ -57,17 +58,16 @@ export const createAppointment = mutation({
     // Send appointment creation email to client (if email present)
     if (client?.email) {
       try {
-        // Dynamically import email utility (works in Convex)
-        const { sendAppointmentEmail } = await import("../lib/appointmentEmail");
-        await sendAppointmentEmail({
+        // Schedule email to be sent
+        await ctx.scheduler.runAfter(0, internal.email.sendAppointmentEmailInternal, {
           to: client.email,
           subject: `Your appointment is confirmed: ${service?.name || "Service"}`,
           appointment: {
             clientName: client.name || client.email,
             staffName: staff?.name || "Staff",
             serviceName: service?.name || "Service",
-            startTime: new Date(args.startTime),
-            endTime: new Date(args.endTime),
+            startTime: args.startTime,
+            endTime: args.endTime,
             notes: args.notes,
           },
           type: "creation",
