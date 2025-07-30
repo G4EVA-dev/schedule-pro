@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { api } from '@/convex/_generated/api';
-import { fetchAction } from 'convex/nextjs'; // Add this import
+import { fetchAction } from 'convex/nextjs'; 
+import { OtpEmail } from '@/components/emails/otp-email';
+import { render } from '@react-email/components';
+import React from 'react';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -42,22 +45,13 @@ export async function POST(request: Request) {
     const token = otpResult.token;
     const expiresAt = otpResult.expiresAt;
 
-    // Send email with OTP
+    // Send email with OTP - await the render function
+    const emailHtml = await render(React.createElement(OtpEmail, { code: otpCode, expiresAt: expiresAt }));
     const { data, error } = await resend.emails.send({
       from: 'SchedulePro <onboarding@resend.dev>',
       to: email,
       subject: 'Your OTP for SchedulePro',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Your One-Time Password</h2>
-          <p>Use the following OTP to verify your email:</p>
-          <h1 style="font-size: 2.5rem; letter-spacing: 0.5rem; color: #2563eb; margin: 1.5rem 0;">
-            ${otpCode}
-          </h1>
-          <p>This OTP is valid for 15 minutes.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-      `,
+      html: emailHtml,
     });
 
     if (error) {
