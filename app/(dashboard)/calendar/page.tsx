@@ -19,7 +19,9 @@ import {
   BarChart3,
   UserCheck,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
@@ -56,13 +58,37 @@ const staggerChild = {
 
 export default function CalendarPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [appointments, setAppointments] = useState<Appointment[]>([
+  // TODO: Replace with actual businessId from context or auth
+  const businessId = "business_dummy_id" as any;
+  const appointmentsData = useQuery(api.appointments.getAppointments, businessId ? { businessId } : undefined);
+  const createAppointment = useMutation(api.appointments.createAppointment);
+  const updateAppointment = useMutation(api.appointments.updateAppointment);
+  const deleteAppointment = useMutation(api.appointments.deleteAppointment);
+
+  // Transform Convex data to match Appointment interface for UI
+  const appointments = useMemo(() => {
+    if (!appointmentsData) return [];
+    return appointmentsData.map((apt: any) => ({
+      id: apt._id,
+      title: apt.notes || 'Appointment', // Placeholder, replace with real title logic
+      client: apt.clientId, // Placeholder, ideally resolve client name
+      startTime: new Date(apt.startTime),
+      endTime: new Date(apt.endTime),
+      type: "consultation" as const, // Placeholder, extend schema or map type
+      status: apt.status,
+      color: "bg-blue-500", // Placeholder, map service/staff color
+      avatar: undefined, // Placeholder, map staff/client avatar if needed
+    }));
+  }, [appointmentsData]);
+
+  // Mock appointments for development/fallback
+  const mockAppointments: Appointment[] = [
     {
       id: "1",
-      title: "Initial Consultation",
-      client: "Sarah Johnson",
-      startTime: new Date(2024, 0, 25, 10, 0),
-      endTime: new Date(2024, 0, 25, 11, 0),
+      title: "Client Consultation",
+      client: "John Doe",
+      startTime: new Date(2024, 0, 25, 9, 0),
+      endTime: new Date(2024, 0, 25, 10, 0),
       type: "consultation",
       status: "confirmed",
       color: "bg-blue-500",
@@ -71,7 +97,7 @@ export default function CalendarPage() {
     {
       id: "2",
       title: "Follow-up Meeting",
-      client: "Mike Chen",
+      client: "Jane Smith",
       startTime: new Date(2024, 0, 25, 14, 0),
       endTime: new Date(2024, 0, 25, 15, 0),
       type: "follow-up",
@@ -82,9 +108,9 @@ export default function CalendarPage() {
     {
       id: "3",
       title: "Project Review",
-      client: "Emma Davis",
-      startTime: new Date(2024, 0, 26, 9, 0),
-      endTime: new Date(2024, 0, 26, 10, 30),
+      client: "Mike Johnson",
+      startTime: new Date(2024, 0, 26, 10, 0),
+      endTime: new Date(2024, 0, 26, 11, 30),
       type: "review",
       status: "pending",
       color: "bg-orange-500",
@@ -112,7 +138,7 @@ export default function CalendarPage() {
       color: "bg-blue-500",
       avatar: "/placeholder.svg?height=32&width=32",
     },
-  ])
+  ];
 
   const sidebarItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -122,20 +148,37 @@ export default function CalendarPage() {
     { icon: Settings, label: "Settings" },
   ]
 
-  const handleAppointmentUpdate = (updatedAppointment: Appointment) => {
-    setAppointments((prev) => prev.map((apt) => (apt.id === updatedAppointment.id ? updatedAppointment : apt)))
-  }
+  // Convex handlers
+  const handleAppointmentCreate = async (newAppointment: Omit<Appointment, "id">) => {
+    if (!businessId) return;
+    // TODO: Map UI fields to Convex schema fields
+    await createAppointment({
+      businessId,
+      serviceId: "service_dummy_id" as any, // Replace with actual service selection
+      staffId: "staff_dummy_id" as any, // Replace with actual staff selection
+      clientId: "client_dummy_id" as any, // Replace with actual client selection
+      startTime: newAppointment.startTime.getTime(),
+      endTime: newAppointment.endTime.getTime(),
+      status: newAppointment.status as any,
+      notes: newAppointment.title, // Or use a notes field from UI
+    });
+  };
 
-  const handleAppointmentDelete = (id: string) => {
-    setAppointments((prev) => prev.filter((apt) => apt.id !== id))
-  }
+  const handleAppointmentUpdate = async (updatedAppointment: Appointment) => {
+    await updateAppointment({
+      id: updatedAppointment.id as any,
+      updates: {
+        // Map only updatable fields
+        startTime: updatedAppointment.startTime.getTime(),
+        endTime: updatedAppointment.endTime.getTime(),
+        status: updatedAppointment.status as any,
+        notes: updatedAppointment.title, // Or use notes field
+      },
+    });
+  };
 
-  const handleAppointmentCreate = (newAppointment: Omit<Appointment, "id">) => {
-    const appointment: Appointment = {
-      ...newAppointment,
-      id: Date.now().toString(),
-    }
-    setAppointments((prev) => [...prev, appointment])
+  const handleAppointmentDelete = async (id: string) => {
+    await deleteAppointment({ id: id as any });
   }
 
   const stats = [
@@ -172,6 +215,9 @@ export default function CalendarPage() {
       bgColor: "bg-orange-100",
     },
   ]
+
+  // Use real appointments if available, otherwise use mock data
+  const displayAppointments = appointments.length > 0 ? appointments : mockAppointments;
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -294,7 +340,7 @@ export default function CalendarPage() {
           {/* Interactive Calendar */}
           <motion.div {...fadeInUp}>
             <InteractiveCalendar
-              appointments={appointments}
+              appointments={displayAppointments}
               onAppointmentUpdate={handleAppointmentUpdate}
               onAppointmentDelete={handleAppointmentDelete}
               onAppointmentCreate={handleAppointmentCreate}
