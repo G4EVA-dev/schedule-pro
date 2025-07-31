@@ -1,8 +1,8 @@
 "use client"
 
 import React from "react"
-import { addMinutes, format } from "date-fns"
-import { Clock, Plus, Minus } from "lucide-react"
+import { addMinutes, format, setHours, setMinutes } from "date-fns"
+import { Clock, Plus, Minus, ToggleLeft, ToggleRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TimePicker } from "./date-time-picker"
 
 interface DurationPickerProps {
   startTime?: Date
@@ -33,6 +34,8 @@ export function DurationPicker({
   disabled = false,
   serviceDuration,
 }: DurationPickerProps) {
+  const [mode, setMode] = React.useState<'duration' | 'endtime'>('duration')
+  
   // Common duration options in minutes
   const durationOptions = [
     { value: 15, label: "15 minutes" },
@@ -62,12 +65,31 @@ export function DurationPicker({
     handleDurationChange(newDuration)
   }
 
-  // Auto-set duration when service duration is provided
+  const handleEndTimeChange = (time: Date | undefined) => {
+    if (time && startTime) {
+      // Combine start date with selected end time
+      const endDateTime = new Date(startTime)
+      endDateTime.setHours(time.getHours())
+      endDateTime.setMinutes(time.getMinutes())
+      
+      // If end time is before start time, move to next day
+      if (endDateTime <= startTime) {
+        endDateTime.setDate(endDateTime.getDate() + 1)
+      }
+      
+      onEndTimeChange(endDateTime)
+    } else {
+      onEndTimeChange(time)
+    }
+  }
+
+  // Only suggest service duration initially, don't force it
   React.useEffect(() => {
-    if (serviceDuration && startTime && (!endTime || Math.abs(currentDuration - serviceDuration) > 5)) {
+    if (serviceDuration && startTime && !endTime) {
+      // Only set service duration if no end time is set yet
       handleDurationChange(serviceDuration)
     }
-  }, [serviceDuration, startTime])
+  }, [serviceDuration, startTime, endTime])
 
   return (
     <div className={cn("space-y-3", className)}>

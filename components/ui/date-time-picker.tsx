@@ -116,8 +116,8 @@ export function DateTimePicker({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <div className="flex">
+        <PopoverContent className="w-auto p-0" align="start" onInteractOutside={(e) => e.preventDefault()}>
+          <div className="flex" onClick={(e) => e.stopPropagation()}>
             {/* Calendar Section */}
             <div className="p-3 border-r">
               <Calendar
@@ -134,10 +134,10 @@ export function DateTimePicker({
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Time</Label>
                 <Select value={currentTimeValue} onValueChange={handleTimeSelect}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full" onClick={(e) => e.stopPropagation()}>
                     <SelectValue placeholder="Select time" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-60">
+                  <SelectContent className="max-h-60" onCloseAutoFocus={(e) => e.preventDefault()}>
                     {timeOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -164,7 +164,8 @@ export function DateTimePicker({
                       variant="ghost"
                       size="sm"
                       className="h-8 text-xs"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation()
                         const timeValue = `${quickTime.hour.toString().padStart(2, '0')}:${quickTime.minute.toString().padStart(2, '0')}`
                         handleTimeSelect(timeValue)
                       }}
@@ -182,7 +183,8 @@ export function DateTimePicker({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation()
                 onDateChange(undefined)
                 setIsOpen(false)
               }}
@@ -191,7 +193,10 @@ export function DateTimePicker({
             </Button>
             <Button
               size="sm"
-              onClick={() => setIsOpen(false)}
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsOpen(false)
+              }}
               disabled={!date}
             >
               Done

@@ -152,6 +152,37 @@ export default function SettingsPage() {
             <CardDescription>Manage your business details and working hours</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Public Booking Link Section */}
+            {businessId && (
+              <div className="mb-6 p-4 rounded-lg border bg-muted/30 flex flex-col md:flex-row md:items-center gap-3">
+                <div className="flex-1">
+                  <div className="font-medium text-sm mb-1">Share your booking link:</div>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2">
+                    <span className="text-xs text-muted-foreground break-all">Business ID: <span className="font-mono">{businessId}</span></span>
+                    <button
+                      className="ml-2 px-2 py-1 text-xs border rounded hover:bg-muted"
+                      onClick={() => {
+                        navigator.clipboard.writeText(businessId);
+                        alert('Business ID copied!');
+                      }}
+                    >Copy</button>
+                  </div>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 mt-2">
+                    <span className="text-xs text-muted-foreground break-all">
+                      Booking URL: <span className="font-mono">{typeof window !== 'undefined' ? `${window.location.origin}/book/${businessId}` : `/book/${businessId}`}</span>
+                    </span>
+                    <button
+                      className="ml-2 px-2 py-1 text-xs border rounded hover:bg-muted"
+                      onClick={() => {
+                        const url = typeof window !== 'undefined' ? `${window.location.origin}/book/${businessId}` : `/book/${businessId}`;
+                        navigator.clipboard.writeText(url);
+                        alert('Booking URL copied!');
+                      }}
+                    >Copy</button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="businessName">Business Name</Label>
