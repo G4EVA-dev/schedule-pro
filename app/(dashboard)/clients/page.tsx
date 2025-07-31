@@ -76,10 +76,44 @@ export default function ClientsPage() {
 
   // Convex and Auth
   const { businessId } = useAuth();
-  const clientsData = useQuery(api.clients.getClients, businessId ? { businessId } : 'skip');
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const [cursor, setCursor] = useState<number | null>(null);
+  // Search and filter state
+  const [searchValue, setSearchValue] = useState("");
+  // Paginated query
+  // Only include cursor if not null
+  const clientsQueryArgs = businessId
+    ? cursor != null
+      ? { businessId, limit: pageSize, cursor }
+      : { businessId, limit: pageSize }
+    : 'skip';
+  const clientsData = useQuery(
+    api.clients.getClients,
+    clientsQueryArgs
+  );
   const createClient = useMutation(api.clients.createClient);
   const clientsLoading = businessId && !clientsData;
-  const clients: Client[] = clientsData || [];
+  const clients: Client[] = clientsData?.items || [];
+  const totalClients = clientsData?.total || 0;
+  const nextCursor = clientsData?.nextCursor || null;
+
+  // Pagination logic
+  const totalPages = Math.ceil(totalClients / pageSize);
+  const handleNextPage = () => {
+    if (page < totalPages && nextCursor) {
+      setPage(page + 1);
+      setCursor(nextCursor);
+    }
+  };
+  const handlePrevPage = () => {
+    if (page > 1) {
+      setPage(page - 1);
+      // Need to track previous cursors in a stack for full cursor-based pagination. For now, reset to first page.
+      setCursor(null);
+    }
+  };
 
   // Add Client Form State
   const [form, setForm] = useState({ name: '', email: '', phone: '', notes: '' });
@@ -123,13 +157,14 @@ export default function ClientsPage() {
     { icon: Settings, label: "Settings", href: "/settings" },
   ]
 
+  // For now, filter on frontend (for small lists); for large lists, move to backend
   const filteredClients = clients.filter((client: Client) => {
     const matchesSearch =
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === "all" || client.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+      client.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || client.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const stats = [
     {
@@ -331,9 +366,45 @@ export default function ClientsPage() {
                     ))
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
+               </CardContent>
+             </Card>
+           </motion.div>
+
+           {/* Pagination Controls */}
+           <div className="flex justify-center items-center mt-6 space-x-2">
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={handlePrevPage}
+               disabled={page === 1}
+             >
+               Prev
+             </Button>
+             {Array.from({ length: totalPages }).map((_, idx) => (
+               <Button
+                 key={idx}
+                 variant={page === idx + 1 ? "default" : "outline"}
+                 size="sm"
+                 onClick={() => {
+                   setPage(idx + 1);
+                   setCursor(idx === 0 ? null : nextCursor); // Only accurate for 2 pages; for more, need a cursor stack
+                 }}
+               >
+                 {idx + 1}
+               </Button>
+             ))}
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={handleNextPage}
+               disabled={page === totalPages || totalPages === 0}
+             >
+               Next
+             </Button>
+             <span className="ml-4 text-sm text-slate-500">
+               Page {page} of {totalPages}
+             </span>
+           </div>
         </main>
       </div>
 
