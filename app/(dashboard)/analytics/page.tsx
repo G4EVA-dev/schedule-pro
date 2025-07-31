@@ -27,16 +27,27 @@ import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAuthActions } from "@convex-dev/auth/react"
 import { Id } from "@/convex/_generated/dataModel"
+import { useAuth } from "@/hooks/use-auth"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function AnalyticsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [timeRange, setTimeRange] = useState("30d")
-  // Get current user and their businesses
-  const currentUser = useQuery(api.users.getCurrentUser)
-  const businesses = useQuery(api.businesses.getUserBusinesses, 
-    currentUser ? { userId: currentUser._id } : "skip"
-  )
-  const businessId = businesses?.[0]?._id
+  // Use the same auth pattern as dashboard
+  const { user: currentUser, businessId, isLoading: authLoading } = useAuth();
+
+  // Fallback UI if no businessId (no business for user)
+  if (currentUser && !businessId && !authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <h2 className="text-2xl font-bold mb-2">No Business Found</h2>
+        <p className="mb-4 text-muted-foreground">You don't have any businesses associated with your account.<br/>Please create a business in Settings to view analytics.</p>
+        <Link href="/settings?tab=business">
+          <Button>Create Business</Button>
+        </Link>
+      </div>
+    );
+  }
   
   // Fetch analytics data
   const analytics = useQuery(api.analytics.getBusinessAnalytics, 
@@ -60,6 +71,8 @@ export default function AnalyticsPage() {
   // Use real data or fallback to empty arrays
   const revenueData = monthlyRevenue || []
   const appointmentTypeData = appointmentTypes || []
+
+  // This fallback is now handled above with businessId check
 
   // Generate stats from real data
   const stats = analytics ? [
@@ -104,16 +117,45 @@ export default function AnalyticsPage() {
   const maxRevenue = revenueData.length > 0 ? Math.max(...revenueData.map((d: { revenue: number }) => d.revenue)) : 1
   
   // Loading state
-  if (!currentUser || !businesses || !analytics) {
+  // Show skeleton UI while loading
+  if (authLoading || !businessId || !analytics || !monthlyRevenue || !appointmentTypes) {
     return (
-      <div className="flex h-screen bg-background">
-        <div className="flex-1 flex flex-col min-w-0">
-          <main className="flex-1 p-6 flex items-center justify-center">
-            <div className="flex items-center space-x-2">
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span>Loading analytics...</span>
-            </div>
-          </main>
+      <div className="flex flex-col min-h-screen bg-background">
+        <div className="flex-1 max-w-6xl mx-auto w-full py-8">
+          {/* Skeleton Stat Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-6 w-6 rounded-full" />
+                  <Skeleton className="h-4 w-10" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-24 mb-2" />
+                  <Skeleton className="h-4 w-16" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {/* Skeleton Chart Area */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-72 w-full rounded-lg" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32 mb-2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-72 w-full rounded-lg" />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     )
