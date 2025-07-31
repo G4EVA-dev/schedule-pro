@@ -93,15 +93,44 @@ export const createAppointment = mutation({
           },
           type: "creation",
         });
+        // Staff email sent above
       } catch (error) {
         console.error("Failed to send staff appointment email:", error);
       }
     }
+    // Send to owner (always notify owner of new bookings)
+    if (staff?.businessId) {
+      const business = await ctx.db.get(staff.businessId);
+      if (business?.ownerId) {
+        const owner = await ctx.db.get(business.ownerId);
+        // Only send if owner is different from staff user
+        if (owner?.email && owner.email !== client?.email && staff.userId !== business.ownerId) {
+          try {
+            await ctx.scheduler.runAfter(0, internal.email.sendAppointmentEmailInternal, {
+              to: owner.email,
+              subject: `New appointment booked: ${service?.name || "Service"}`,
+              appointment: {
+                clientName: client?.name || client?.email || "Client",
+                staffName: staff.name || staff.email,
+                serviceName: service?.name || "Service",
+                startTime: args.startTime,
+                endTime: args.endTime,
+                notes: args.notes,
+              },
+              type: "creation",
+            });
+          } catch (error) {
+            console.error("Failed to send owner appointment email:", error);
+          }
+        }
+      }
+    }
 
     // In-app notification for client
-    if (client?._id) {
+    const clientId = client?._id;
+    if (clientId) {
       await ctx.runMutation(api.notifications.createNotification, {
-        userId: client._id,
+        userId: clientId,
         title: "Appointment Confirmed",
         message: `Your appointment for ${service?.name || "a service"} is confirmed!`,
         type: "appointment",
@@ -109,9 +138,10 @@ export const createAppointment = mutation({
       });
     }
     // In-app notification for staff
-    if (staff?._id) {
+    const staffId = staff?._id;
+    if (staffId) {
       await ctx.runMutation(api.notifications.createNotification, {
-        userId: staff._id,
+        userId: staffId,
         title: "New Appointment Booked",
         message: `You have a new appointment for ${service?.name || "a service"}.`,
         type: "appointment",
