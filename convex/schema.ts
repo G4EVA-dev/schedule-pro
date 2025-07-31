@@ -118,4 +118,21 @@ export default defineSchema({
     sentAt: v.optional(v.number()),
     error: v.optional(v.string()),
   }).index("by_status_scheduled", ["status", "scheduledFor"]),
+
+  // In-app notifications for users
+  inAppNotifications: defineTable({
+    userId: v.string(),
+    title: v.string(),
+    message: v.string(),
+    type: v.union(
+      v.literal("appointment"),
+      v.literal("system"),
+      v.literal("payment"),
+      v.literal("other")
+    ),
+    isRead: v.boolean(),
+    relatedId: v.optional(v.string()),
+    createdAt: v.number(),
+    readAt: v.optional(v.number()),
+  }).index("by_user", ["userId"]).index("by_createdAt", ["createdAt"]),
 });

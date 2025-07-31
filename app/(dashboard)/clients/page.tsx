@@ -166,22 +166,11 @@ export default function ClientsPage() {
   ]
 
   return (
-    <div className="flex h-screen bg-slate-50">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}     
-
-      {/* Main Content Area */}
+    <div className="flex h-screen">
+              {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 p-6">
           {/* Stats Cards */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"

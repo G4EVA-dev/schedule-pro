@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
-import { internal } from "./_generated/api";
+import { internal, api } from "./_generated/api";
 
 // Query: Get all appointments for a business (optionally filter by staff or client)
 export const getAppointments = query({
@@ -75,6 +75,48 @@ export const createAppointment = mutation({
       } catch (error) {
         console.error("Failed to send appointment email:", error);
       }
+    }
+
+    // Send appointment notification to staff (if email present)
+    if (staff?.email) {
+      try {
+        await ctx.scheduler.runAfter(0, internal.email.sendAppointmentEmailInternal, {
+          to: staff.email,
+          subject: `New appointment booked: ${service?.name || "Service"}`,
+          appointment: {
+            clientName: client?.name || client?.email || "Client",
+            staffName: staff.name || staff.email,
+            serviceName: service?.name || "Service",
+            startTime: args.startTime,
+            endTime: args.endTime,
+            notes: args.notes,
+          },
+          type: "creation",
+        });
+      } catch (error) {
+        console.error("Failed to send staff appointment email:", error);
+      }
+    }
+
+    // In-app notification for client
+    if (client?._id) {
+      await ctx.runMutation(api.notifications.createNotification, {
+        userId: client._id,
+        title: "Appointment Confirmed",
+        message: `Your appointment for ${service?.name || "a service"} is confirmed!`,
+        type: "appointment",
+        relatedId: appointmentId,
+      });
+    }
+    // In-app notification for staff
+    if (staff?._id) {
+      await ctx.runMutation(api.notifications.createNotification, {
+        userId: staff._id,
+        title: "New Appointment Booked",
+        message: `You have a new appointment for ${service?.name || "a service"}.`,
+        type: "appointment",
+        relatedId: appointmentId,
+      });
     }
 
     return appointmentId;

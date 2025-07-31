@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -104,17 +105,7 @@ export function DashboardHeader() {
           </Button>
         </Link>
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative focus-visible:ring-2 focus-visible:ring-primary" aria-label="View notifications">
-          <Bell className="h-4 w-4" aria-hidden="true" />
-          <Badge 
-            variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
-            aria-label="3 unread notifications"
-          >
-            3
-          </Badge>
-          <span className="sr-only">Notifications</span>
-        </Button>
+        <NotificationDropdown />
         {/* User Menu */}
         <UserMenu user={user} />
       </div>

@@ -269,14 +269,14 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="w-full flex h-screen bg-slate-50">      
+    <div className="w-full flex h-screen">      
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col ">
         
 
         {/* Calendar Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1  p-6">
           {/* Stats Overview */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
