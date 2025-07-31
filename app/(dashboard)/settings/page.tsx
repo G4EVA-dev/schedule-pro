@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { StaffServiceCard } from "@/components/dashboard/StaffServiceCard";
+import { MultiSelect } from "@/components/ui/multiselect";
+
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -37,7 +40,14 @@ import { useAuth } from "@/hooks/use-auth"
 import { CreateStaffModal, CreateServiceModal } from "@/components/dashboard/StaffServiceModals"
 import { useBusinessData } from "@/components/providers/BusinessDataProvider"
 
-export default function SettingsPage() {
+import type { Theme } from "@/providers/theme-provider";
+
+type AppearanceSettingsProps = {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+};
+
+export default function SettingsPage() { 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("profile")
   const [language, setLanguage] = useState("en")
@@ -115,6 +125,7 @@ export default function SettingsPage() {
   )
 
   const BusinessSettings = () => {
+    const updateStaff = useMutation(api.staff.updateStaff);
     const { businessId, user } = useAuth();
     // Staff
     const { staff, services } = useBusinessData();
@@ -143,7 +154,7 @@ export default function SettingsPage() {
       await createService({ businessId, ...data });
       setServiceModalOpen(false);
     };
-
+    
     return (
       <div className="space-y-6">
         <Card>
@@ -277,19 +288,45 @@ export default function SettingsPage() {
                         <div className="font-medium text-sm">{service.name}</div>
                         <div className="text-xs text-muted-foreground">{service.description}</div>
                       </div>
-                      <div className="text-xs ml-2">{service.duration} min</div>
-                      <div className="text-xs ml-4">${(service.price/100).toFixed(2)}</div>
+                      <div className="flex justify-between">
+                        <div className="text-xs ml-2">{service.duration} min</div>
+                        <div className="text-xs ml-4">${(service.price/100).toFixed(2)}</div>
+                      </div>
                     </li>
                   ))}
                 </ul>
               )}
               <CreateServiceModal open={serviceModalOpen} onClose={() => setServiceModalOpen(false)} onSubmit={handleCreateService} />
             </div>
+
+            {/* Staff-Service Assignment UI */}
+            <div className="mt-10">
+              <h3 className="text-lg font-semibold mb-4">Assign Services to Staff</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {staff && staff.length > 0 && services && services.length > 0 ? (
+                  staff.map((member: any) => (
+                    <StaffServiceCard
+                      key={member._id}
+                      staff={member}
+                      services={services}
+                      onUpdate={async (newServices: string[]) => {
+                        await updateStaff({
+                          id: member._id,
+                          services: newServices,
+                        });
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className="text-muted-foreground text-sm col-span-2">Add staff and services to enable assignment.</div>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
     );
-  };
+  }
 
   const NotificationSettings = () => (
     <div className="space-y-6">
@@ -393,7 +430,7 @@ export default function SettingsPage() {
     </div>
   )
 
-  const AppearanceSettings = () => (
+  const AppearanceSettings: React.FC<AppearanceSettingsProps> = ({ theme, setTheme }) => (
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -527,7 +564,7 @@ export default function SettingsPage() {
       case "security":
         return <SecuritySettings />
       case "appearance":
-        return <AppearanceSettings />
+        return <AppearanceSettings theme={theme} setTheme={setTheme} />
       default:
         return <ProfileSettings />
     }

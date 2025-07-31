@@ -62,59 +62,59 @@ export function DashboardHeader() {
       </Sheet>
 
       {/* Page Title & Breadcrumb */}
-      <div className="flex items-center gap-2 lg:gap-4">
+      <div className="flex items-center gap-2 lg:gap-4 min-w-0">
         <div className="flex items-center gap-2 lg:hidden">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Calendar className="h-4 w-4" />
           </div>
-          <span className="font-semibold">SchedulePro</span>
+          <span className="font-semibold truncate max-w-[90px]" title={currentPageName}>{currentPageName}</span>
         </div>
-        <div className="hidden lg:block">
-          <h1 className="text-lg font-semibold">{currentPageName}</h1>
+        <div className="hidden lg:block min-w-0">
+          <h1 className="text-lg font-semibold truncate" title={currentPageName} aria-label="Page title">{currentPageName}</h1>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="flex-1 max-w-md">
-        <div className="relative">
-          <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${
+      <div className="flex-1 flex justify-center min-w-0">
+        <div className="relative w-full max-w-md">
+          <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors pointer-events-none ${
             isSearchFocused ? 'text-primary' : 'text-muted-foreground'
-          }`} />
+          }`} aria-hidden="true" />
           <Input
             type="search"
             placeholder="Search appointments, clients..."
-            className="w-full rounded-lg bg-muted/50 pl-9 pr-4 focus:bg-background"
+            className="w-full rounded-lg bg-muted/50 pl-9 pr-4 focus:bg-background focus-visible:ring-2 focus-visible:ring-primary"
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setIsSearchFocused(false)}
+            aria-label="Search appointments, clients"
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0">
         {/* Quick Add Button */}
-        <Link href="/calendar?new=true">
-          <Button size="sm" className="hidden sm:flex">
+        <Link href="/calendar?new=true" aria-label="Add new appointment">
+          <Button size="sm" className="hidden sm:flex focus-visible:ring-2 focus-visible:ring-primary">
             <Plus className="h-4 w-4 mr-2" />
             New Appointment
           </Button>
-          <Button size="icon" className="sm:hidden">
+          <Button size="icon" className="sm:hidden focus-visible:ring-2 focus-visible:ring-primary">
             <Plus className="h-4 w-4" />
           </Button>
         </Link>
-        
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="relative focus-visible:ring-2 focus-visible:ring-primary" aria-label="View notifications">
+          <Bell className="h-4 w-4" aria-hidden="true" />
           <Badge 
             variant="destructive" 
             className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs"
+            aria-label="3 unread notifications"
           >
             3
           </Badge>
           <span className="sr-only">Notifications</span>
         </Button>
-        
         {/* User Menu */}
         <UserMenu user={user} />
       </div>
