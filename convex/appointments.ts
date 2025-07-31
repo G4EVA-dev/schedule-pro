@@ -3,6 +3,23 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import { internal, api } from "./_generated/api";
 
+// Query: Get appointments for a business within a date range
+export const getAppointmentsByDate = query({
+  args: {
+    businessId: v.id("businesses"),
+    start: v.number(),
+    end: v.number(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("appointments")
+      .withIndex("by_business", q => q.eq("businessId", args.businessId))
+      .filter(q => q.gte(q.field("startTime"), args.start))
+      .filter(q => q.lt(q.field("startTime"), args.end))
+      .collect();
+  },
+});
+
 // Query: Get all appointments for a business (optionally filter by staff or client)
 export const getAppointments = query({
   args: {

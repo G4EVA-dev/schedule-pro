@@ -18,14 +18,36 @@ import {
   DollarSign,
   Clock,
   Download,
+  Loader2,
 } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { useAuthActions } from "@convex-dev/auth/react"
+import { Id } from "@/convex/_generated/dataModel"
 
 export default function AnalyticsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [timeRange, setTimeRange] = useState("30d")
+  // Get current user and their businesses
+  const currentUser = useQuery(api.users.getCurrentUser)
+  const businesses = useQuery(api.businesses.getUserBusinesses, 
+    currentUser ? { userId: currentUser._id } : "skip"
+  )
+  const businessId = businesses?.[0]?._id
+  
+  // Fetch analytics data
+  const analytics = useQuery(api.analytics.getBusinessAnalytics, 
+    businessId ? { businessId } : "skip"
+  )
+  const monthlyRevenue = useQuery(api.analytics.getMonthlyRevenue, 
+    businessId ? { businessId } : "skip"
+  )
+  const appointmentTypes = useQuery(api.analytics.getAppointmentTypes, 
+    businessId ? { businessId } : "skip"
+  )
 
   const sidebarItems = [
     { icon: Home, label: "Dashboard", href: "/dashboard" },
@@ -35,62 +57,86 @@ export default function AnalyticsPage() {
     { icon: Settings, label: "Settings", href: "/settings" },
   ]
 
-  const revenueData = [
-    { month: "Jan", revenue: 4000, appointments: 24, percentage: 67 },
-    { month: "Feb", revenue: 3000, appointments: 18, percentage: 50 },
-    { month: "Mar", revenue: 5000, appointments: 30, percentage: 83 },
-    { month: "Apr", revenue: 4500, appointments: 27, percentage: 75 },
-    { month: "May", revenue: 6000, appointments: 36, percentage: 100 },
-    { month: "Jun", revenue: 5500, appointments: 33, percentage: 92 },
-  ]
+  // Use real data or fallback to empty arrays
+  const revenueData = monthlyRevenue || []
+  const appointmentTypeData = appointmentTypes || []
 
-  const appointmentTypeData = [
-    { name: "Consultation", value: 45, color: "bg-blue-500" },
-    { name: "Follow-up", value: 30, color: "bg-green-500" },
-    { name: "Review", value: 15, color: "bg-orange-500" },
-    { name: "Meeting", value: 10, color: "bg-purple-500" },
-  ]
-
-  const stats = [
+  // Generate stats from real data
+  const stats = analytics ? [
     {
       title: "Total Revenue",
-      value: "$28,000",
-      change: "+12.5%",
-      trend: "up",
+      value: `$${analytics.totalRevenue.toLocaleString()}`,
+      change: `${analytics.revenueChange >= 0 ? '+' : ''}${analytics.revenueChange.toFixed(1)}%`,
+      trend: analytics.revenueChange >= 0 ? "up" : "down",
       icon: DollarSign,
       color: "text-green-600",
       bgColor: "bg-green-100 dark:bg-green-900/20",
     },
     {
       title: "Total Appointments",
-      value: "168",
-      change: "+8.2%",
-      trend: "up",
+      value: analytics.totalAppointments.toString(),
+      change: `${analytics.appointmentChange >= 0 ? '+' : ''}${analytics.appointmentChange.toFixed(1)}%`,
+      trend: analytics.appointmentChange >= 0 ? "up" : "down",
       icon: Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-100 dark:bg-blue-900/20",
     },
     {
       title: "Avg. Session Duration",
-      value: "45 min",
-      change: "-2.1%",
-      trend: "down",
+      value: `${analytics.avgDuration} min`,
+      change: "0%", // We don't have historical duration data yet
+      trend: "up",
       icon: Clock,
       color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-900/20",
     },
     {
       title: "Client Retention",
-      value: "87%",
-      change: "+5.3%",
+      value: `${analytics.clientRetention}%`,
+      change: "0%", // We don't have historical retention data yet
       trend: "up",
       icon: Users,
       color: "text-orange-600",
       bgColor: "bg-orange-100 dark:bg-orange-900/20",
     },
-  ]
+  ] : []
 
-  const maxRevenue = Math.max(...revenueData.map((d) => d.revenue))
+  const maxRevenue = revenueData.length > 0 ? Math.max(...revenueData.map((d: { revenue: number }) => d.revenue)) : 1
+  
+  // Loading state
+  if (!currentUser || !businesses || !analytics) {
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Loading analytics...</span>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+  
+  // No business found
+  if (!businessId) {
+    return (
+      <div className="flex h-screen bg-background">
+        <div className="flex-1 flex flex-col min-w-0">
+          <main className="flex-1 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">No Business Found</h2>
+              <p className="text-muted-foreground mb-4">You need to create a business first to view analytics.</p>
+              <Button asChild>
+                <Link href="/settings">Create Business</Link>
+              </Button>
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -142,7 +188,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-80 flex items-end justify-between space-x-2 p-4">
-                    {revenueData.map((data, index) => (
+                    {revenueData.length > 0 ? revenueData.map((data: any, index: number) => (
                       <div key={data.month} className="flex flex-col items-center flex-1">
                         <div className="w-full flex flex-col items-center mb-2">
                           <div
@@ -159,7 +205,11 @@ export default function AnalyticsPage() {
                         </div>
                         <span className="text-sm text-muted-foreground font-medium">{data.month}</span>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="flex items-center justify-center w-full h-full text-muted-foreground">
+                        No revenue data available
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -174,7 +224,7 @@ export default function AnalyticsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {appointmentTypeData.map((item, index) => (
+                    {appointmentTypeData.map((item: any, index: number) => (
                       <div key={item.name} className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                           <div className={`w-4 h-4 rounded-full ${item.color}`}></div>
@@ -209,8 +259,8 @@ export default function AnalyticsPage() {
                           strokeWidth="8"
                           className="text-muted opacity-20"
                         />
-                        {appointmentTypeData.map((item, index) => {
-                          const offset = appointmentTypeData.slice(0, index).reduce((sum, prev) => sum + prev.value, 0)
+                        {appointmentTypeData.map((item: any, index: number) => {
+                          const offset = appointmentTypeData.slice(0, index).reduce((sum: number, prev: any) => sum + prev.value, 0)
                           const circumference = 2 * Math.PI * 40
                           const strokeDasharray = `${(item.value / 100) * circumference} ${circumference}`
                           const strokeDashoffset = -((offset / 100) * circumference)
@@ -253,8 +303,8 @@ export default function AnalyticsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-80 flex items-end justify-between space-x-4 p-4">
-                  {revenueData.map((data, index) => {
-                    const maxAppointments = Math.max(...revenueData.map((d) => d.appointments))
+                  {revenueData.map((data: { appointments: number, month: string }, index: number) => {
+                    const maxAppointments = Math.max(...revenueData.map((d: { appointments: number }) => d.appointments))
                     return (
                       <div key={data.month} className="flex flex-col items-center flex-1">
                         <div className="w-full flex flex-col items-center mb-2">

@@ -106,3 +106,17 @@ export const remove = mutation({
     return { success: true };
   },
 });
+
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || !identity.email) return null;
+
+    // Find the user by email (or another unique field)
+    return await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+      .first();
+  },
+});

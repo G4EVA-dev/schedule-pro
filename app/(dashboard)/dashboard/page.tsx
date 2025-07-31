@@ -21,6 +21,11 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { DashboardLoading } from "@/components/ui/loading-state"
 import { useState } from "react"
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuth } from "@/hooks/use-auth"
+import { useBusinessData } from "@/components/providers/BusinessDataProvider"
 
 export default function Dashboard() {
   const [isLoading] = useState(false)
@@ -48,75 +53,81 @@ export default function Dashboard() {
     }
   }
 
-  const stats = [
+  // Use the same hooks as other working dashboard pages
+  const { user: currentUser, businessId, isLoading: authLoading } = useAuth();
+
+  // Fetch analytics stats
+  const analytics = useQuery(api.analytics.getBusinessAnalytics, businessId ? { businessId } : "skip")
+
+  // Fetch today's appointments
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+  const todaysAppointments = useQuery(api.appointments.getAppointmentsByDate, businessId ? {
+    businessId,
+    start: today.getTime(),
+    end: tomorrow.getTime()
+  } : "skip")
+
+  // Stats for dashboard
+  const stats = analytics ? [
     {
       title: "Total Revenue",
-      value: "$12,426",
-      change: "+12.5%",
-      changeType: "positive" as const,
+      value: `$${analytics.totalRevenue.toLocaleString()}`,
+      change: `${analytics.revenueChange >= 0 ? '+' : ''}${analytics.revenueChange.toFixed(1)}%`,
+      changeType: analytics.revenueChange >= 0 ? "positive" : "negative",
       icon: DollarSign,
       description: "vs last month",
     },
     {
       title: "Appointments",
-      value: "156",
-      change: "+8.2%",
-      changeType: "positive" as const,
+      value: analytics.totalAppointments.toString(),
+      change: `${analytics.appointmentChange >= 0 ? '+' : ''}${analytics.appointmentChange.toFixed(1)}%`,
+      changeType: analytics.appointmentChange >= 0 ? "positive" : "negative",
       icon: Calendar,
       description: "this month",
     },
     {
       title: "New Clients",
-      value: "24",
-      change: "+4.1%",
-      changeType: "positive" as const,
+      value: analytics.totalClients?.toString() ?? "-",
+      change: "0%",
+      changeType: "positive",
       icon: Users,
       description: "this month",
     },
     {
       title: "Completion Rate",
-      value: "94.2%",
-      change: "-2.1%",
-      changeType: "negative" as const,
+      value: analytics.completionRate ? `${analytics.completionRate}%` : "-",
+      change: "0%",
+      changeType: "positive",
       icon: CheckCircle,
       description: "vs last month",
     },
-  ]
+  ] : []
 
-  const recentAppointments = [
-    {
-      id: 1,
-      client: "Sarah Johnson",
-      service: "Hair Cut & Style",
-      time: "10:00 AM",
-      status: "confirmed" as const,
-      avatar: "/avatars/sarah.jpg",
-    },
-    {
-      id: 2,
-      client: "Mike Chen",
-      service: "Beard Trim",
-      time: "11:30 AM",
-      status: "pending" as const,
-      avatar: "/avatars/mike.jpg",
-    },
-    {
-      id: 3,
-      client: "Emma Wilson",
-      service: "Color Treatment",
-      time: "2:00 PM",
-      status: "confirmed" as const,
-      avatar: "/avatars/emma.jpg",
-    },
-    {
-      id: 4,
-      client: "David Brown",
-      service: "Full Service",
-      time: "3:30 PM",
-      status: "pending" as const,
-      avatar: "/avatars/david.jpg",
-    },
-  ]
+  // Lookup maps for quick join
+  const { clients, staff, services } = useBusinessData();
+  const clientMap = Object.fromEntries((clients || []).map((c: any) => [c._id || c.id, c]));
+  const staffMap = Object.fromEntries((staff || []).map((s: any) => [s._id || s.id, s]));
+  const serviceMap = Object.fromEntries((services || []).map((s: any) => [s._id || s.id, s]));
+
+  // Format today's appointments for UI
+  const recentAppointments = (todaysAppointments || []).map((apt: any) => {
+    const client = clientMap[apt.clientId];
+    const staffMember = staffMap[apt.staffId];
+    const service = serviceMap[apt.serviceId];
+    return {
+      id: apt._id,
+      client: client?.name || "Unknown Client",
+      clientEmail: client?.email,
+      service: service?.name || "Unknown Service",
+      staff: staffMember?.name || "Unknown Staff",
+      time: new Date(apt.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: apt.status || "scheduled",
+      avatar: client?.avatar || "/avatars/default.jpg",
+    }
+  })
 
   const getStatusBadge = (status: "confirmed" | "pending" | "completed" | "cancelled") => {
     const variants = {
@@ -140,8 +151,141 @@ export default function Dashboard() {
     )
   }
 
-  if (isLoading) {
-    return <DashboardLoading />
+  // Debug logs for troubleshooting
+  if (typeof window !== "undefined") {
+    console.log("currentUser", currentUser)
+    console.log("businessId", businessId)
+    console.log("analytics", analytics)
+    console.log("todaysAppointments", todaysAppointments)
+  }
+
+  // Loading states
+  const isDataLoading = authLoading || analytics === undefined || todaysAppointments === undefined
+  
+  if (isLoading || isDataLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Welcome Section Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-80" />
+          </div>
+          <Skeleton className="h-10 w-40" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-20 mb-2" />
+                <Skeleton className="h-3 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Main Content Grid Skeleton */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+          {/* Today's Appointments Skeleton */}
+          <Card className="col-span-4">
+            <CardHeader>
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-60" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions Skeleton */}
+          <div className="col-span-3 space-y-6">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-32" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-2 w-2 rounded-full" />
+                      <Skeleton className="h-3 w-40" />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
+  // No business found (or empty data)
+  if (!businessId) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">No Business Found</h2>
+          <p className="text-muted-foreground mb-4">You need to create a business first to view your dashboard.</p>
+          <Button asChild>
+            <Link href="/settings">Create Business</Link>
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Fallback for missing analytics or appointments
+  if (!analytics) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">No Analytics Data</h2>
+          <p className="text-muted-foreground mb-4">No analytics data found for your business. Try adding some appointments.</p>
+        </div>
+      </div>
+    )
+  }
+  if (!todaysAppointments) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">No Appointments Data</h2>
+          <p className="text-muted-foreground mb-4">No appointments found for today. Try booking an appointment.</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -153,10 +297,14 @@ export default function Dashboard() {
     >
       {/* Welcome Section */}
       <motion.div variants={itemVariants} className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold tracking-tight">
+            {currentUser?.name
+              ? `Welcome back, ${currentUser.name.split(' ')[0]}!`
+              : 'Welcome back!'}
+          </h2>
           <p className="text-muted-foreground">
-            Here's what's happening with your business today.
+            Here’s what’s happening with your business today.
           </p>
         </div>
         <Link href="/calendar?new=true">
@@ -217,7 +365,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {recentAppointments.map((appointment) => (
+                {recentAppointments.map((appointment: any) => (
                   <div
                     key={appointment.id}
                     className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -226,7 +374,7 @@ export default function Dashboard() {
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={appointment.avatar} alt={appointment.client} />
                         <AvatarFallback>
-                          {appointment.client.split(' ').map(n => n[0]).join('')}
+                          {appointment.client ? appointment.client.split(' ').map((n: string) => n[0]).join('') : 'UC'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
