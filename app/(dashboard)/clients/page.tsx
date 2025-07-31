@@ -166,6 +166,57 @@ export default function ClientsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  // CSV Export
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportSuccess, setExportSuccess] = useState(false);
+
+  function clientsToCSV(clients: Client[]): string {
+    const headers = [
+      'Name', 'Email', 'Phone', 'Address', 'Status', 'Total Appointments', 'Total Spent', 'Last Visit', 'Notes'
+    ];
+    const rows = clients.map(c => [
+      c.name,
+      c.email,
+      c.phone,
+      c.address,
+      c.status,
+      c.totalAppointments,
+      c.totalSpent,
+      c.lastVisit,
+      c.notes?.replace(/\n/g, ' ').replace(/,/g, ';') || ''
+    ]);
+    return [headers, ...rows]
+      .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+  }
+
+  const handleExportCSV = async () => {
+    setExporting(true);
+    setExportError(null);
+    setExportSuccess(false);
+    try {
+      // For a professional UX, fetch all clients for export if needed (not just current page)
+      // For now, export filteredClients (current page)
+      const csv = clientsToCSV(filteredClients);
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `clients_export_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setExportSuccess(true);
+      setTimeout(() => setExportSuccess(false), 2000);
+    } catch (err: any) {
+      setExportError('Failed to export clients.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const stats = [
     {
       title: "Total Clients",
@@ -252,10 +303,21 @@ export default function ClientsPage() {
                         <SelectItem value="pending">Pending</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Export
-                    </Button>
+                    <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={handleExportCSV}
+                     disabled={exporting || filteredClients.length === 0}
+                   >
+                     <Download className="h-4 w-4 mr-2" />
+                     {exporting ? 'Exporting...' : 'Export CSV'}
+                   </Button>
+                   {exportError && (
+                     <span className="text-red-500 text-xs ml-2">{exportError}</span>
+                   )}
+                   {exportSuccess && (
+                     <span className="text-green-600 text-xs ml-2">Exported!</span>
+                   )}
                     {businessId && (
                       <Button onClick={() => setIsCreateDialogOpen(true)}>
                         <Plus className="h-4 w-4 mr-2" />
