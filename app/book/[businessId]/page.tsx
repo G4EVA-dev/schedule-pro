@@ -150,10 +150,12 @@ export default function PublicBookingPage({ params }: { params: { businessId: st
                 body: JSON.stringify({
                   businessId: params.businessId,
                   serviceId: selectedService,
+                  staffId,
                   clientId,
                   startTime,
                   endTime,
                   status: "scheduled",
+                  notes: "", // Always send notes, even if empty
                 }),
               }).then(r => r.json());
               setBookingStatus("success");

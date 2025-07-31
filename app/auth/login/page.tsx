@@ -35,6 +35,13 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(callbackUrl);
+    }
+  }, [isAuthenticated, callbackUrl, router]);
   const [authError, setAuthError] = useState<string | null>(null);
 
   const validateForm = () => {

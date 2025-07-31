@@ -1,3 +1,5 @@
+"use client";
+
 import { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
@@ -9,21 +11,34 @@ import { BusinessDataProvider } from "@/components/providers/BusinessDataProvide
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Dashboard - SchedulePro",
-  description: "Manage your business scheduling",
-};
+
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/auth/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading || !isAuthenticated) {
+    // Optionally show a loader here
+    return null;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}
       <Sidebar className="hidden lg:flex" />
-      
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <DashboardHeader />
@@ -35,7 +50,6 @@ export default function DashboardLayout({
           </main>
         </BusinessDataProvider>
       </div>
-      
       <Toaster />
     </div>
   );
