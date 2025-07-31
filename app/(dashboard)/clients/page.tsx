@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAuth } from "@/hooks/use-auth"
@@ -133,32 +134,32 @@ export default function ClientsPage() {
   const stats = [
     {
       title: "Total Clients",
-      value: clients.length.toString(),
-      change: "+12% this month",
+      value: clientsLoading ? <Skeleton className="h-7 w-12" /> : clients.length.toString(),
+      change: clientsLoading ? <Skeleton className="h-4 w-20" /> : "+12% this month",
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
       title: "Active Clients",
-      value: clients.filter((c: Client) => c.status === "active").length.toString(),
-      change: "85% active rate",
+      value: clientsLoading ? <Skeleton className="h-7 w-12" /> : clients.filter((c: Client) => c.status === "active").length.toString(),
+      change: clientsLoading ? <Skeleton className="h-4 w-20" /> : "85% active rate",
       icon: Users,
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
     {
       title: "Total Revenue",
-      value: `$${clients.reduce((sum: number, c: Client) => sum + c.totalSpent, 0).toLocaleString()}`,
-      change: "+18% this month",
+      value: clientsLoading ? <Skeleton className="h-7 w-16" /> : `$${clients.reduce((sum: number, c: Client) => sum + c.totalSpent, 0).toLocaleString()}`,
+      change: clientsLoading ? <Skeleton className="h-4 w-20" /> : "+18% this month",
       icon: BarChart3,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },
     {
       title: "Avg. per Client",
-      value: `$${Math.round(clients.reduce((sum: number, c: Client) => sum + c.totalSpent, 0) / clients.length) || 0}`,
-      change: "+5% this month",
+      value: clientsLoading ? <Skeleton className="h-7 w-16" /> : `$${Math.round(clients.reduce((sum: number, c: Client) => sum + c.totalSpent, 0) / (clients.length || 1))}`,
+      change: clientsLoading ? <Skeleton className="h-4 w-20" /> : "+5% this month",
       icon: BarChart3,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -231,74 +232,104 @@ export default function ClientsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {filteredClients.map((client: Client, index: number) => (
-                    <motion.div
-                      key={client.id}
-                      className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <div className="flex items-center space-x-4 flex-1">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={client.avatar || "/placeholder.svg"} />
-                          <AvatarFallback>
-                            {client.name
-                              .split(" ")
-                              .map((n: string) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold text-slate-900">{client.name}</h3>
-                            <Badge
-                              variant={
-                                client.status === "active"
-                                  ? "default"
-                                  : client.status === "pending"
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                            >
-                              {client.status}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-4 text-sm text-slate-600">
-                            <div className="flex items-center">
-                              <Mail className="h-3 w-3 mr-1" />
-                              {client.email}
+                  {clientsLoading ? (
+                    Array.from({ length: 4 }).map((_, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-lg animate-pulse">
+                        <div className="flex items-center space-x-4 flex-1">
+                          <Skeleton className="h-12 w-12 rounded-full" />
+                          <div className="flex-1 min-w-0">
+                            <Skeleton className="h-5 w-32 mb-2" />
+                            <div className="flex space-x-2 mb-1">
+                              <Skeleton className="h-4 w-16" />
+                              <Skeleton className="h-4 w-12" />
                             </div>
-                            <div className="flex items-center">
-                              <Phone className="h-3 w-3 mr-1" />
-                              {client.phone}
+                            <div className="flex space-x-4">
+                              <Skeleton className="h-4 w-24" />
+                              <Skeleton className="h-4 w-20" />
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-6 text-sm">
-                        <div className="text-center">
-                          <p className="font-semibold text-slate-900">{client.totalAppointments}</p>
-                          <p className="text-slate-600">Appointments</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-slate-900">${client.totalSpent}</p>
-                          <p className="text-slate-600">Total Spent</p>
-                        </div>
-                        <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" onClick={() => setSelectedClient(client)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div className="flex items-center space-x-6 text-sm">
+                          <Skeleton className="h-5 w-12" />
+                          <Skeleton className="h-5 w-16" />
+                          <div className="flex space-x-1">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                          </div>
                         </div>
                       </div>
-                    </motion.div>
-                  ))}
+                    ))
+                  ) : (
+                    filteredClients.map((client: Client, index: number) => (
+                      <motion.div
+                        key={client.id}
+                        className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors group"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div className="flex items-center space-x-4 flex-1">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={client.avatar || "/placeholder.svg"} />
+                            <AvatarFallback>
+                              {client.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h3 className="font-semibold text-slate-900">{client.name}</h3>
+                              <Badge
+                                variant={
+                                  client.status === "active"
+                                    ? "default"
+                                    : client.status === "pending"
+                                      ? "secondary"
+                                      : "destructive"
+                                }
+                              >
+                                {client.status}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-4 text-sm text-slate-600">
+                              <div className="flex items-center">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {client.email}
+                              </div>
+                              <div className="flex items-center">
+                                <Phone className="h-3 w-3 mr-1" />
+                                {client.phone}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-6 text-sm">
+                          <div className="text-center">
+                            <p className="font-semibold text-slate-900">{client.totalAppointments}</p>
+                            <p className="text-slate-600">Appointments</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold text-slate-900">${client.totalSpent}</p>
+                            <p className="text-slate-600">Total Spent</p>
+                          </div>
+                          <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" onClick={() => setSelectedClient(client)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>

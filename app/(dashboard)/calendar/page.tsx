@@ -39,6 +39,7 @@ import { useBusinessData } from "@/components/providers/BusinessDataProvider"
 import { CalendarLoading } from "@/components/ui/loading-state"
 import { NoAppointmentsEmpty } from "@/components/ui/empty-state"
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Appointment {
   id: string
@@ -226,35 +227,89 @@ export default function CalendarPage() {
     await deleteAppointment({ id: id as any });
   }
 
+  // --- Calendar Stats: Real Data + Skeletons ---
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay()); // Sunday
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(weekStart.getDate() - 7);
+  const lastWeekEnd = new Date(weekStart);
+
+  // Convex queries for analytics
+  const analytics = useQuery(api.analytics.getBusinessAnalytics, businessId ? { businessId } : 'skip');
+  const todaysAppointments = useQuery(api.appointments.getAppointmentsByDate, businessId ? {
+    businessId,
+    start: today.getTime(),
+    end: tomorrow.getTime()
+  } : 'skip');
+  const thisWeekAppointments = useQuery(api.appointments.getAppointmentsByDate, businessId ? {
+    businessId,
+    start: weekStart.getTime(),
+    end: weekEnd.getTime()
+  } : 'skip');
+  const lastWeekAppointments = useQuery(api.appointments.getAppointmentsByDate, businessId ? {
+    businessId,
+    start: lastWeekStart.getTime(),
+    end: lastWeekEnd.getTime()
+  } : 'skip');
+
+  const isStatsLoading =
+    analytics === undefined ||
+    todaysAppointments === undefined ||
+    thisWeekAppointments === undefined ||
+    lastWeekAppointments === undefined;
+
+  // Calculate stat values
+  const todaysCount = todaysAppointments?.length ?? 0;
+  const yesterdaysCount = thisWeekAppointments && Array.isArray(thisWeekAppointments)
+    ? thisWeekAppointments.filter((apt: any) => {
+        const d = new Date(apt.startTime);
+        return d >= new Date(today.getTime() - 86400000) && d < today;
+      }).length
+    : 0;
+  const thisWeekCount = thisWeekAppointments?.length ?? 0;
+  const lastWeekCount = lastWeekAppointments?.length ?? 0;
+  const weekDelta = lastWeekCount > 0 ? Math.round(((thisWeekCount - lastWeekCount) / lastWeekCount) * 100) : 0;
+  const confirmedCount = thisWeekAppointments && Array.isArray(thisWeekAppointments)
+    ? thisWeekAppointments.filter((apt: any) => apt.status === 'confirmed').length
+    : 0;
+  const confirmationRate = thisWeekCount > 0 ? Math.round((confirmedCount / thisWeekCount) * 1000) / 10 : 0;
+  const revenue = analytics?.totalRevenue ?? 0;
+
   const stats = [
     {
       title: "Today's Appointments",
-      value: "8",
-      change: "+2 from yesterday",
+      value: isStatsLoading ? <Skeleton className="h-7 w-10" /> : todaysCount,
+      change: isStatsLoading ? <Skeleton className="h-4 w-20" /> : `${todaysCount - yesterdaysCount >= 0 ? '+' : ''}${todaysCount - yesterdaysCount} from yesterday`,
       icon: Calendar,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
     },
     {
       title: "This Week",
-      value: "32",
-      change: "+12% from last week",
+      value: isStatsLoading ? <Skeleton className="h-7 w-10" /> : thisWeekCount,
+      change: isStatsLoading ? <Skeleton className="h-4 w-20" /> : `${weekDelta >= 0 ? '+' : ''}${weekDelta}% from last week`,
       icon: Clock,
       color: "text-green-600",
       bgColor: "bg-green-100",
     },
     {
       title: "Confirmed",
-      value: "28",
-      change: "87.5% confirmation rate",
+      value: isStatsLoading ? <Skeleton className="h-7 w-10" /> : confirmedCount,
+      change: isStatsLoading ? <Skeleton className="h-4 w-20" /> : `${confirmationRate}% confirmation rate`,
       icon: UserCheck,
       color: "text-purple-600",
       bgColor: "bg-purple-100",
     },
     {
       title: "Revenue",
-      value: "$3,240",
-      change: "+18% this month",
+      value: isStatsLoading ? <Skeleton className="h-7 w-16" /> : `$${(revenue / 100).toLocaleString()}`,
+      change: isStatsLoading ? <Skeleton className="h-4 w-20" /> : analytics?.revenueChange ? `${analytics.revenueChange >= 0 ? '+' : ''}${analytics.revenueChange}% this week` : '',
       icon: TrendingUp,
       color: "text-orange-600",
       bgColor: "bg-orange-100",
