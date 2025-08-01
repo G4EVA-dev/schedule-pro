@@ -20,6 +20,8 @@ import { usePathname } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
 import { Badge } from "@/components/ui/badge"
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 const navigation = [
   {
@@ -77,6 +79,12 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname()
   const { user } = useAuth()
+  // Fetch notifications for badge
+  const notifications = useQuery(
+    api.notifications.getNotifications,
+    user ? { userId: user.id } : undefined
+  ) as import("@/types").Notification[] | undefined;
+  const unreadCount = notifications ? notifications.filter((n: import("@/types").Notification) => !n.isRead).length : 0;
 
   return (
     <div className={cn("flex h-full w-64 flex-col border-r bg-card", className)}>
@@ -154,16 +162,25 @@ export function Sidebar({ className }: SidebarProps) {
 
         <Separator className="mb-6" />
 
-        {/* Help & Support */}
+        {/* Help & Support and Notifications */}
         <div className="space-y-1">
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3">
-            <HelpCircle className="h-4 w-4" />
-            Help & Support
-          </Button>
-          <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3">
-            <Bell className="h-4 w-4" />
-            Notifications
-          </Button>
+          <Link href="/help">
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3">
+              <HelpCircle className="h-4 w-4" />
+              Help & Support
+            </Button>
+          </Link>
+          <Link href="/notifications">
+            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3 relative">
+              <Bell className="h-4 w-4" />
+              Notifications
+              {unreadCount > 0 && (
+                <span className="absolute right-4 top-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+            </Button>
+          </Link>
         </div>
       </ScrollArea>
 

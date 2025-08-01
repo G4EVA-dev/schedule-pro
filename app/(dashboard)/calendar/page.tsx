@@ -366,13 +366,13 @@ export default function CalendarPage() {
               onAppointmentUpdate={handleAppointmentUpdate}
               onAppointmentDelete={handleAppointmentDelete}
               onAppointmentCreate={handleAppointmentCreate}
-              clients={clients ? clients.map((c: any) => ({
+              clients={clients && Array.isArray(clients) ? clients.map((c: any) => ({
                 id: c._id,
                 name: c.name,
                 email: c.email,
                 avatar: c.avatar || undefined,
               })) : []}
-              staff={staff ? staff.map((s: any) => ({
+              staff={staff && Array.isArray(staff) ? staff.map((s: any) => ({
                 id: s._id,
                 name: s.name,
                 email: s.email,

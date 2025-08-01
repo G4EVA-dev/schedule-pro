@@ -20,6 +20,7 @@ import type * as authActions from "../authActions.js";
 import type * as businesses from "../businesses.js";
 import type * as clients from "../clients.js";
 import type * as email from "../email.js";
+import type * as feedback from "../feedback.js";
 import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
 import type * as otpActions from "../otpActions.js";
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   businesses: typeof businesses;
   clients: typeof clients;
   email: typeof email;
+  feedback: typeof feedback;
   http: typeof http;
   notifications: typeof notifications;
   otpActions: typeof otpActions;
