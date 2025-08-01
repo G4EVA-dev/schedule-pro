@@ -73,17 +73,33 @@ export const sendAppointmentEmailInternal = internalAction({
     const prettyEnd = new Date(endTime).toLocaleString();
     const action = type === 'reminder' ? 'Reminder: Upcoming' : 'New';
 
-    const html = `<div style="font-family: sans-serif;">
-      <h2>${action} Appointment</h2>
-      <p>Hello ${clientName},</p>
-      <p>Your appointment for <b>${serviceName}</b> with <b>${staffName}</b> is scheduled for:</p>
-      <ul>
-        <li><b>Start:</b> ${prettyDate}</li>
-        <li><b>End:</b> ${prettyEnd}</li>
-      </ul>
-      ${notes ? `<p><b>Notes:</b> ${notes}</p>` : ''}
-      <p>Thank you for choosing SchedulePro.</p>
-    </div>`;
+    // Personalize email for staff vs. client
+    let html;
+    if (type === 'staff') {
+      html = `<div style="font-family: sans-serif;">
+        <h2>${action} Appointment Assigned</h2>
+        <p>Hello ${staffName},</p>
+        <p>You have been assigned a new appointment for <b>${serviceName}</b> with client <b>${clientName}</b>.</p>
+        <ul>
+          <li><b>Start:</b> ${prettyDate}</li>
+          <li><b>End:</b> ${prettyEnd}</li>
+        </ul>
+        ${notes ? `<p><b>Notes:</b> ${notes}</p>` : ''}
+        <p>Please log in to SchedulePro to view more details.</p>
+      </div>`;
+    } else {
+      html = `<div style="font-family: sans-serif;">
+        <h2>${action} Appointment</h2>
+        <p>Hello ${clientName},</p>
+        <p>Your appointment for <b>${serviceName}</b> with <b>${staffName}</b> is scheduled for:</p>
+        <ul>
+          <li><b>Start:</b> ${prettyDate}</li>
+          <li><b>End:</b> ${prettyEnd}</li>
+        </ul>
+        ${notes ? `<p><b>Notes:</b> ${notes}</p>` : ''}
+        <p>Thank you for choosing SchedulePro.</p>
+      </div>`;
+    }
 
     try {
       const apiKey = process.env.RESEND_API_KEY;
@@ -91,6 +107,13 @@ export const sendAppointmentEmailInternal = internalAction({
         throw new Error('RESEND_API_KEY environment variable is not set. Please add it to your Convex dashboard at https://dashboard.convex.dev → Settings → Environment Variables');
       }
       
+      // Log email payload for debugging
+      console.log('Preparing to send appointment email:', {
+        to,
+        subject,
+        type,
+        appointment,
+      });
       const resend = new Resend(apiKey);
       await resend.emails.send({
         from: 'SchedulePro <onboarding@resend.dev>',
