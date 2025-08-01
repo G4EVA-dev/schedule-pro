@@ -104,15 +104,33 @@ const features = [
 
 export default function RoadmapPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950 text-gray-900 dark:text-gray-100 flex flex-col items-center py-12 px-4">
-      <div className="flex flex-col items-center mb-8">
-        <span className="text-3xl font-extrabold tracking-tight text-indigo-700 dark:text-indigo-400 mb-2">SchedulePro</span>
-        <h1 className="text-3xl font-bold tracking-tight">SchedulePro Roadmap</h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-300 max-w-2xl text-center">
-          We're always building new features to make scheduling easier and more powerful for you. Here's a sneak peek at what's next!
-        </p>
+    <div className="min-h-screen bg-white/95 backdrop-blur-sm">
+      {/* Header with Logo */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-slate-200/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-3xl font-bold text-blue-600 hover:scale-105 transition-transform">
+              SchedulePro
+            </Link>
+            <Link href="/" className="text-slate-600 hover:text-blue-600 transition-colors">
+              ← Back to Home
+            </Link>
+          </div>
+        </div>
       </div>
-      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl w-full">
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
+            Product Roadmap
+          </h1>
+          <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-8">
+            We're always building new features to make scheduling easier and more powerful for you. Here's a sneak peek at what's next!
+          </p>
+        </div>
+        {/* Roadmap Features */}
+        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto w-full mb-16">
         {features.map((feature, i) => (
           <div
             key={feature.title}
@@ -129,13 +147,18 @@ export default function RoadmapPage() {
             </span>
           </div>
         ))}
-      </div>
-      <div className="mt-12 max-w-xl w-full">
-        <div className="bg-white/80 dark:bg-slate-900/80 border border-gray-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
-          <h2 className="text-xl font-bold mb-3 text-indigo-700 dark:text-indigo-400 text-center">Suggest a Feature or Share Feedback</h2>
-          <FeedbackForm />
+        </div>
+        {/* Feedback Section */}
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-2xl font-bold mb-4 text-center">Have a Feature Request?</h2>
+            <p className="text-slate-600 mb-6 text-center">
+              We'd love to hear your ideas! Submit your suggestions and help shape the future of SchedulePro.
+            </p>
+            <FeedbackForm />
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

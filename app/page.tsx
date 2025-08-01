@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar, Clock, Users, BarChart3, Zap, Shield, Star, ArrowRight, CheckCircle, Menu, X } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const AnimatedCounter = ({ end, duration = 2 }: { end: number; duration?: number }) => {
   const [count, setCount] = useState(0)
@@ -123,6 +124,7 @@ export default function LandingPage() {
             </div>
 
             <div className="hidden md:flex items-center space-x-4">
+              <ThemeToggle />
               <Button variant="ghost" className="text-slate-600" asChild>
                 <Link href="/auth/login">Sign In</Link>
               </Button>
@@ -156,6 +158,7 @@ export default function LandingPage() {
                 Dashboard
               </Link>
               <div className="px-3 py-2 space-y-2">
+                <ThemeToggle />
                 <Button variant="ghost" className="w-full" asChild>
                   <Link href="/auth/login">Sign In</Link>
                 </Button>
