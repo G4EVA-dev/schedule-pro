@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Query: Get all businesses for a user (by owner)
@@ -25,5 +25,25 @@ export const getBusiness = query({
     const business = await ctx.db.get(args.businessId);
     if (!business) return null;
     return business;
+  },
+});
+
+// Update business profile
+export const updateBusinessProfile = mutation({
+  args: {
+    businessId: v.id("businesses"),
+    name: v.optional(v.string()),
+    type: v.optional(v.string()),
+    description: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { businessId, ...updates } = args;
+    // Only allow updates to fields in schema
+    const allowedFields = ["name", "type", "description"];
+    const filteredUpdates = Object.fromEntries(
+      Object.entries(updates).filter(([key, value]) => allowedFields.includes(key) && value !== undefined)
+    );
+    await ctx.db.patch(businessId, filteredUpdates);
+    return await ctx.db.get(businessId);
   },
 });

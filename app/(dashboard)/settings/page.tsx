@@ -32,9 +32,9 @@ import {
   Monitor,
   Check,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAuth } from "@/hooks/use-auth"
 import { CreateStaffModal, CreateServiceModal } from "@/components/dashboard/StaffServiceModals"
@@ -70,6 +70,37 @@ export default function SettingsPage() {
     { id: "appearance", label: "Appearance", icon: Palette },
   ]
 
+  const { user } = useAuth();
+  const updateUser = useMutation(api.users.updateUserProfile);
+  const [form, setForm] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: (user as any)?.phone || "",
+    bio: (user as any)?.bio || "",
+    avatarUrl: user?.image || "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.id]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await updateUser({
+      userId: user?.id,
+      name: form.name,
+      email: form.email,
+      phone: form.phone,
+      bio: form.bio,
+      avatarUrl: form.avatarUrl,
+    });
+    setSaving(false);
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 2000);
+  };
+
   const ProfileSettings = () => (
     <div className="space-y-6">
       <Card>
@@ -80,11 +111,11 @@ export default function SettingsPage() {
         <CardContent className="space-y-6">
           <div className="flex items-center space-x-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="/placeholder.svg?height=80&width=80" />
-              <AvatarFallback className="text-lg">JD</AvatarFallback>
+              <AvatarImage src={form.avatarUrl || "/placeholder.svg?height=80&width=80"} />
+              <AvatarFallback className="text-lg">{user?.name?.slice(0,2).toUpperCase() || "U"}</AvatarFallback>
             </Avatar>
             <div>
-              <Button variant="outline">
+              <Button variant="outline" disabled>
                 <Upload className="h-4 w-4 mr-2" />
                 Change Photo
               </Button>
@@ -94,20 +125,16 @@ export default function SettingsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" defaultValue="John" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" defaultValue="Doe" />
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" value={form.name} onChange={handleChange} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="john.doe@example.com" />
+              <Input id="email" type="email" value={form.email} onChange={handleChange} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" defaultValue="+1 (555) 123-4567" />
+              <Input id="phone" value={form.phone} onChange={handleChange} />
             </div>
           </div>
 
@@ -116,8 +143,16 @@ export default function SettingsPage() {
             <Textarea
               id="bio"
               placeholder="Tell us about yourself..."
-              defaultValue="Professional consultant with 10+ years of experience helping businesses grow."
+              value={form.bio}
+              onChange={handleChange}
             />
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving..." : "Save"}
+            </Button>
+            {success && <span className="text-green-600 ml-4 self-center">Saved!</span>}
           </div>
         </CardContent>
       </Card>
@@ -127,10 +162,50 @@ export default function SettingsPage() {
   const BusinessSettings = () => {
     const updateStaff = useMutation(api.staff.updateStaff);
     const { businessId, user } = useAuth();
+    const business = useQuery(api.businesses.getBusiness, businessId ? { businessId } : "skip");
+    const updateBusiness = useMutation(api.businesses.updateBusinessProfile);
     // Staff
     const { staff, services } = useBusinessData();
     const createStaff = useMutation(api.staff.createStaff);
     const createService = useMutation(api.services.createService);
+
+    // Business form state
+    const [bizForm, setBizForm] = useState({
+      name: business?.name || "",
+      type: business?.type || "consulting",
+      description: business?.description || "",
+    });
+    const [bizSaving, setBizSaving] = useState(false);
+    const [bizSuccess, setBizSuccess] = useState(false);
+
+    useEffect(() => {
+      if (business) {
+        setBizForm({
+          name: business.name || "",
+          type: business.type || "consulting",
+          description: business.description || "",
+        });
+      }
+    }, [business]);
+
+    const handleBizChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setBizForm({ ...bizForm, [e.target.id]: e.target.value });
+    };
+    const handleBizTypeChange = (value: string) => {
+      setBizForm({ ...bizForm, type: value });
+    };
+    const handleBizSave = async () => {
+      setBizSaving(true);
+      await updateBusiness({
+        businessId,
+        name: bizForm.name,
+        type: bizForm.type,
+        description: bizForm.description,
+      });
+      setBizSaving(false);
+      setBizSuccess(true);
+      setTimeout(() => setBizSuccess(false), 2000);
+    };
 
     // Modal state
     const [staffModalOpen, setStaffModalOpen] = useState(false);
@@ -154,7 +229,7 @@ export default function SettingsPage() {
       await createService({ businessId, ...data });
       setServiceModalOpen(false);
     };
-    
+
     return (
       <div className="space-y-6">
         <Card>
@@ -196,12 +271,12 @@ export default function SettingsPage() {
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" defaultValue="John Doe Consulting" />
+                <Label htmlFor="name">Business Name</Label>
+                <Input id="name" value={bizForm.name} onChange={handleBizChange} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="businessType">Business Type</Label>
-                <Select defaultValue="consulting">
+                <Label htmlFor="type">Business Type</Label>
+                <Select value={bizForm.type} onValueChange={handleBizTypeChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -217,8 +292,15 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Business Address</Label>
-              <Input id="address" defaultValue="123 Business St, New York, NY 10001" />
+              <Label htmlFor="description">Business Description</Label>
+              <Textarea id="description" value={bizForm.description} onChange={handleBizChange} />
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleBizSave} disabled={bizSaving}>
+                {bizSaving ? "Saving..." : "Save"}
+              </Button>
+              {bizSuccess && <span className="text-green-600 ml-4 self-center">Saved!</span>}
             </div>
 
             <div className="space-y-4">
