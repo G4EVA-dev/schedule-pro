@@ -110,7 +110,7 @@ export default function LandingPage() {
                 <Link href="#features" className="text-slate-600 hover:text-blue-600 transition-colors">
                   Features
                 </Link>
-                <Link href="#pricing" className="text-slate-600 hover:text-blue-600 transition-colors">
+                <Link href="/pricing" className="text-slate-600 hover:text-blue-600 transition-colors">
                   Pricing
                 </Link>
                 <Link href="#testimonials" className="text-slate-600 hover:text-blue-600 transition-colors">
@@ -146,7 +146,7 @@ export default function LandingPage() {
               <Link href="#features" className="block px-3 py-2 text-slate-600">
                 Features
               </Link>
-              <Link href="#pricing" className="block px-3 py-2 text-slate-600">
+              <Link href="/pricing" className="block px-3 py-2 text-slate-600">
                 Pricing
               </Link>
               <Link href="#testimonials" className="block px-3 py-2 text-slate-600">
@@ -357,7 +357,7 @@ export default function LandingPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <Link href="/pricing" className="hover:text-white transition-colors">
                     Pricing
                   </Link>
                 </li>
