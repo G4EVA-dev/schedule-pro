@@ -117,7 +117,7 @@ export function DateTimePicker({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto p-0 z-[9999] bg-white border border-gray-200 shadow-xl pointer-events-auto relative"
+          className="w-auto p-0 z-[9999] bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 shadow-xl pointer-events-auto relative"
           align="start"
           side="bottom"
           sideOffset={4}
