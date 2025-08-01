@@ -48,9 +48,9 @@ export async function POST(request: Request) {
     // Send email with OTP - await the render function
     const emailHtml = await render(React.createElement(OtpEmail, { code: otpCode, expiresAt: expiresAt }));
     const { data, error } = await resend.emails.send({
-      from: 'SchedulePro <onboarding@resend.dev>',
+      from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'otp@email.schedulepro.store'}>`,
       to: email,
-      subject: 'Your OTP for SchedulePro',
+      subject: 'Your SchedulePro Login Code',
       html: emailHtml,
     });
 

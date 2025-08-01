@@ -20,7 +20,7 @@ import {
   Download,
   Loader2,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { useQuery } from "convex/react"
@@ -35,6 +35,11 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState("30d")
   // Use the same auth pattern as dashboard
   const { user: currentUser, businessId, isLoading: authLoading } = useAuth();
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Analytics · SchedulePro';
+  }, []);
 
   // Fallback UI if no businessId (no business for user)
   if (currentUser && !businessId && !authLoading) {

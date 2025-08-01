@@ -12,7 +12,7 @@ export async function sendWelcomeEmail(email: string, name: string, verification
   
   try {
     const { data, error } = await resend.emails.send({
-      from: 'SchedulePro <welcome@yourdomain.com>',
+      from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'welcome@email.schedulepro.store'}>`,
       to: email,
       subject: 'Welcome to SchedulePro - Verify Your Email',
       react: WelcomeEmail({ name, verificationLink }),

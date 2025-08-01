@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,6 +29,11 @@ import { useBusinessData } from "@/components/providers/BusinessDataProvider"
 
 export default function Dashboard() {
   const [isLoading] = useState(false)
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Dashboard · SchedulePro';
+  }, []);
 
   // Animation variants
   const containerVariants = {

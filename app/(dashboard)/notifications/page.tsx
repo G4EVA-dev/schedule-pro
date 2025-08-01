@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,6 +11,13 @@ import Link from "next/link";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Notifications · SchedulePro';
+  }, []);
+
   const notifications = useQuery(
     api.notifications.getNotifications,
     user ? { userId: user.id } : undefined

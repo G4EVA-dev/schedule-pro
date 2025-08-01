@@ -1,8 +1,11 @@
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import { CheckCircle, ArrowRight, Info, Star } from "lucide-react";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Pricing · SchedulePro",
+  description: "Simple, transparent pricing for SchedulePro. Start free with unlimited features. Premium plans coming soon with advanced capabilities.",
+};
 
 const pricingTiers = [
   {

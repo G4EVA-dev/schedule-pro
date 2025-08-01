@@ -50,6 +50,11 @@ type AppearanceSettingsProps = {
 export default function SettingsPage() { 
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("profile")
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Settings · SchedulePro';
+  }, []);
   const [language, setLanguage] = useState("en")
   const [timezone, setTimezone] = useState("est")
   const { theme, setTheme } = useTheme()

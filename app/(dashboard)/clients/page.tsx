@@ -27,7 +27,7 @@ import {
   Trash2,
   Eye,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useQuery, useMutation } from "convex/react"
@@ -70,9 +70,15 @@ const staggerChild = {
 export default function ClientsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+
+  // Set page title
+  useEffect(() => {
+    document.title = 'Clients · SchedulePro';
+  }, []);
 
   // Convex and Auth
   const { businessId } = useAuth();

@@ -35,7 +35,7 @@ export const sendAppointmentEmail = httpAction(async (ctx, request) => {
     
     const resend = new Resend(apiKey);
     await resend.emails.send({
-      from: 'SchedulePro <onboarding@resend.dev>',
+      from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'appointments@email.schedulepro.store'}>`,
       to,
       subject,
       html,
@@ -116,7 +116,7 @@ export const sendAppointmentEmailInternal = internalAction({
       });
       const resend = new Resend(apiKey);
       await resend.emails.send({
-        from: 'SchedulePro <onboarding@resend.dev>',
+        from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'appointments@email.schedulepro.store'}>`,
         to,
         subject,
         html,

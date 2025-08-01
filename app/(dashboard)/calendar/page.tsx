@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { InteractiveCalendar } from "@/components/calendar/interactive-calendar"
 import { Button } from "@/components/ui/button"
@@ -31,7 +31,6 @@ import {
   Eye,
   Link,
 } from "lucide-react"
-import { useState, useMemo } from "react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAuth } from "@/hooks/use-auth"
@@ -87,6 +86,11 @@ export default function CalendarPage() {
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month")
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
+  // Set page title
+  useEffect(() => {
+    document.title = 'Calendar · SchedulePro';
+  }, []);
+
   const { businessId, user, isLoading: authLoading } = useAuth();
   const appointmentsData = useQuery(api.appointments.getAppointments, businessId ? { businessId } : 'skip');
   const { clients, staff, services } = useBusinessData();

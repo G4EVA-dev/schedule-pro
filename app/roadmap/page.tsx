@@ -1,7 +1,12 @@
-"use client"
+import type { Metadata } from "next";
 import Link from "next/link";   
 import { FeedbackForm } from "./FeedbackForm";
 import { ArrowRight, Calendar, Smartphone, Users, Zap, Bell, RefreshCw, CreditCard, FileText, MapPin, Star, Palette, Globe, Gift, Mail, BarChart3, Share2 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Roadmap · SchedulePro",
+  description: "Discover upcoming features and improvements for SchedulePro. See what's planned, in development, and coming soon to enhance your scheduling experience.",
+};
 
 const features = [
   {

@@ -38,7 +38,7 @@ export async function sendAppointmentEmail({
   </div>`;
 
   return resend.emails.send({
-    from: 'SchedulePro <onboarding@resend.dev>',
+    from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'appointments@email.schedulepro.store'}>`,
     to,
     subject,
     html,
