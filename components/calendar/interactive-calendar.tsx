@@ -411,7 +411,7 @@ export function InteractiveCalendar({
 
       {/* Create Appointment Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] z-50">
           <DialogHeader>
             <DialogTitle>Create New Appointment</DialogTitle>
             <DialogDescription>Schedule a new appointment with your client.</DialogDescription>
@@ -431,7 +431,7 @@ export function InteractiveCalendar({
 
       {/* Edit Appointment Dialog */}
       <Dialog open={!!selectedAppointment} onOpenChange={() => setSelectedAppointment(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] z-50">
           <DialogHeader>
             <DialogTitle>Edit Appointment</DialogTitle>
             <DialogDescription>Update appointment details or delete the appointment.</DialogDescription>

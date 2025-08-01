@@ -116,7 +116,24 @@ export function DateTimePicker({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start" onInteractOutside={(e) => e.preventDefault()}>
+        <PopoverContent
+          className="w-auto p-0 z-[9999] bg-white border border-gray-200 shadow-xl pointer-events-auto relative"
+          align="start"
+          side="bottom"
+          sideOffset={4}
+          style={{ zIndex: 9999 }}
+          // Prevent the popover from closing when clicking inside it or its elements
+          onInteractOutside={e => {
+            e.preventDefault();
+          }}
+          // Ensure popover stays open during internal interactions
+          onPointerDownOutside={e => {
+            e.preventDefault();
+          }}
+          onFocusOutside={e => {
+            e.preventDefault();
+          }}
+        >
           <div className="flex" onClick={(e) => e.stopPropagation()}>
             {/* Calendar Section */}
             <div className="p-3 border-r">
