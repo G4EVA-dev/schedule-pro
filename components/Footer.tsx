@@ -1,0 +1,20 @@
+import Link from "next/link";
+
+export default function Footer() {
+  return (
+    <footer className="w-full border-t bg-background py-4 text-center text-xs text-muted-foreground mt-8">
+      <div className="container mx-auto flex flex-col md:flex-row items-center justify-between gap-2 px-4">
+        <span>
+          © {new Date().getFullYear()} SchedulePro. All rights reserved.
+        </span>
+        <span className="flex gap-4 items-center">
+          <Link href="/roadmap" className="hover:underline font-medium">
+            Roadmap & Upcoming Features
+          </Link>
+          <Link href="/pricing" className="hover:underline">Pricing</Link>
+          <Link href="/help" className="hover:underline">Help & Support</Link>
+        </span>
+      </div>
+    </footer>
+  );
+}

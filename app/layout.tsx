@@ -26,7 +26,7 @@ export default function RootLayout({
               {children}
             </ThemeProvider>
           </AuthProvider>
-        </ConvexClientProvider>
+        </ConvexClientProvider>        
       </body>
     </html>
   );

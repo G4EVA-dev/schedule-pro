@@ -352,6 +352,12 @@ export default function LandingPage() {
               <h3 className="font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-slate-400">
                 <li>
+                <Link href="/roadmap" className="hover:text-white transition-colors">
+                  Roadmap & Upcoming Features
+                </Link>
+                </li>
+               
+                <li>
                   <Link href="#" className="hover:text-white transition-colors">
                     Features
                   </Link>
@@ -359,11 +365,6 @@ export default function LandingPage() {
                 <li>
                   <Link href="/pricing" className="hover:text-white transition-colors">
                     Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    API
                   </Link>
                 </li>
               </ul>

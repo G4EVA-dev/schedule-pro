@@ -50,6 +50,12 @@ const navigation = [
     description: "Business insights",
   },
   {
+    name: "Roadmap",
+    href: "/roadmap",
+    icon: require("lucide-react").Map,
+    description: "Upcoming features",
+  },
+  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
