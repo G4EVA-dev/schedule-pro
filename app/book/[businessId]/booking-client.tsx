@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 
 const fallbackLogo = "/logo-placeholder.png";
 
@@ -58,12 +58,17 @@ export function BookingPageClient({ businessId }: { businessId: string }) {
     );
   }
 
+  const router = useRouter();
   const closeSuccessModal = () => {
     setShowSuccessModal(false);
     setBookingStatus(null);
     setFeedback("");
     setFeedbackStatus('idle');
+    setTimeout(() => {
+      router.push("/");
+    }, 200); // slight delay for UI smoothness
   };
+
 
   const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
