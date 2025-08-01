@@ -36,6 +36,15 @@ export default defineSchema({
     timezone: v.string(),
     currency: v.string(),
     ownerId: v.id("users"),
+    workingHours: v.optional(v.object({
+      monday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      tuesday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      wednesday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      thursday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      friday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      saturday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      sunday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+    })),
     settings: v.object({
       bookingWindow: v.number(), // days in advance
       minNotice: v.number(), // hours

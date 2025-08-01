@@ -75,8 +75,6 @@ export default function SettingsPage() {
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    phone: (user as any)?.phone || "",
-    bio: (user as any)?.bio || "",
     avatarUrl: user?.image || "",
   });
   const [saving, setSaving] = useState(false);
@@ -92,8 +90,6 @@ export default function SettingsPage() {
       userId: user?.id,
       name: form.name,
       email: form.email,
-      phone: form.phone,
-      bio: form.bio,
       avatarUrl: form.avatarUrl,
     });
     setSaving(false);
@@ -132,20 +128,6 @@ export default function SettingsPage() {
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={form.email} onChange={handleChange} disabled />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={form.phone} onChange={handleChange} />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              placeholder="Tell us about yourself..."
-              value={form.bio}
-              onChange={handleChange}
-            />
           </div>
 
           <div className="flex justify-end pt-2">
@@ -172,8 +154,17 @@ export default function SettingsPage() {
     // Business form state
     const [bizForm, setBizForm] = useState({
       name: business?.name || "",
-      type: business?.type || "consulting",
       description: business?.description || "",
+      logo: business?.logo || "",
+      workingHours: business?.workingHours || {
+        monday: { start: "09:00", end: "17:00", enabled: true },
+        tuesday: { start: "09:00", end: "17:00", enabled: true },
+        wednesday: { start: "09:00", end: "17:00", enabled: true },
+        thursday: { start: "09:00", end: "17:00", enabled: true },
+        friday: { start: "09:00", end: "17:00", enabled: true },
+        saturday: { start: "09:00", end: "17:00", enabled: false },
+        sunday: { start: "09:00", end: "17:00", enabled: false },
+      },
     });
     const [bizSaving, setBizSaving] = useState(false);
     const [bizSuccess, setBizSuccess] = useState(false);
@@ -182,8 +173,17 @@ export default function SettingsPage() {
       if (business) {
         setBizForm({
           name: business.name || "",
-          type: business.type || "consulting",
           description: business.description || "",
+          logo: business.logo || "",
+          workingHours: business.workingHours || {
+            monday: { start: "09:00", end: "17:00", enabled: true },
+            tuesday: { start: "09:00", end: "17:00", enabled: true },
+            wednesday: { start: "09:00", end: "17:00", enabled: true },
+            thursday: { start: "09:00", end: "17:00", enabled: true },
+            friday: { start: "09:00", end: "17:00", enabled: true },
+            saturday: { start: "09:00", end: "17:00", enabled: false },
+            sunday: { start: "09:00", end: "17:00", enabled: false },
+          },
         });
       }
     }, [business]);
@@ -191,16 +191,40 @@ export default function SettingsPage() {
     const handleBizChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setBizForm({ ...bizForm, [e.target.id]: e.target.value });
     };
-    const handleBizTypeChange = (value: string) => {
-      setBizForm({ ...bizForm, type: value });
+    
+    const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        // For now, we'll use a placeholder URL
+        // In production, you'd upload to a service like Cloudinary or AWS S3
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setBizForm({ ...bizForm, logo: event.target?.result as string });
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    
+    const handleWorkingHoursChange = (day: keyof typeof bizForm.workingHours, field: string, value: string | boolean) => {
+      setBizForm({
+        ...bizForm,
+        workingHours: {
+          ...bizForm.workingHours,
+          [day]: {
+            ...bizForm.workingHours[day],
+            [field]: value,
+          },
+        },
+      });
     };
     const handleBizSave = async () => {
       setBizSaving(true);
       await updateBusiness({
         businessId,
         name: bizForm.name,
-        type: bizForm.type,
         description: bizForm.description,
+        logo: bizForm.logo,
+        workingHours: bizForm.workingHours,
       });
       setBizSaving(false);
       setBizSuccess(true);
@@ -269,25 +293,43 @@ export default function SettingsPage() {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Business Logo Section */}
+            <div className="space-y-4">
+              <Label>Business Logo</Label>
+              <div className="flex items-center space-x-6">
+                <div className="h-20 w-20 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+                  {bizForm.logo ? (
+                    <img src={bizForm.logo} alt="Business Logo" className="h-full w-full object-cover rounded-lg" />
+                  ) : (
+                    <div className="text-gray-400 text-center">
+                      <Upload className="h-6 w-6 mx-auto mb-1" />
+                      <span className="text-xs">Logo</span>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                    id="logo-upload"
+                  />
+                  <Button variant="outline" asChild>
+                    <label htmlFor="logo-upload" className="cursor-pointer">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Logo
+                    </label>
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2">JPG, PNG or SVG. Max 2MB.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Business Name</Label>
                 <Input id="name" value={bizForm.name} onChange={handleBizChange} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Business Type</Label>
-                <Select value={bizForm.type} onValueChange={handleBizTypeChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="consulting">Consulting</SelectItem>
-                    <SelectItem value="healthcare">Healthcare</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="legal">Legal</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
 
@@ -306,19 +348,38 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <Label>Working Hours</Label>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                  <div key={day} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Switch defaultChecked={day !== "Sunday"} />
-                      <span className="font-medium">{day}</span>
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
+                  const dayKey = day.toLowerCase() as keyof typeof bizForm.workingHours;
+                  const dayData = bizForm.workingHours[dayKey];
+                  return (
+                    <div key={day} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Switch 
+                          checked={dayData?.enabled || false}
+                          onCheckedChange={(checked) => handleWorkingHoursChange(dayKey, 'enabled', checked)}
+                        />
+                        <span className="font-medium">{day}</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm">
+                        <Input 
+                          className="w-20 h-8" 
+                          type="time"
+                          value={dayData?.start || "09:00"}
+                          onChange={(e) => handleWorkingHoursChange(dayKey, 'start', e.target.value)}
+                          disabled={!dayData?.enabled}
+                        />
+                        <span>-</span>
+                        <Input 
+                          className="w-20 h-8" 
+                          type="time"
+                          value={dayData?.end || "17:00"}
+                          onChange={(e) => handleWorkingHoursChange(dayKey, 'end', e.target.value)}
+                          disabled={!dayData?.enabled}
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Input className="w-20 h-8" defaultValue="09:00" />
-                      <span>-</span>
-                      <Input className="w-20 h-8" defaultValue="17:00" />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

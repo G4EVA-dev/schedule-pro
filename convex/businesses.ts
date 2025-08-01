@@ -33,13 +33,22 @@ export const updateBusinessProfile = mutation({
   args: {
     businessId: v.id("businesses"),
     name: v.optional(v.string()),
-    type: v.optional(v.string()),
     description: v.optional(v.string()),
+    logo: v.optional(v.string()),
+    workingHours: v.optional(v.object({
+      monday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      tuesday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      wednesday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      thursday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      friday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      saturday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+      sunday: v.optional(v.object({ start: v.string(), end: v.string(), enabled: v.boolean() })),
+    })),
   },
   handler: async (ctx, args) => {
     const { businessId, ...updates } = args;
     // Only allow updates to fields in schema
-    const allowedFields = ["name", "type", "description"];
+    const allowedFields = ["name", "description", "logo", "workingHours"];
     const filteredUpdates = Object.fromEntries(
       Object.entries(updates).filter(([key, value]) => allowedFields.includes(key) && value !== undefined)
     );

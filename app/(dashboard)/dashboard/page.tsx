@@ -108,9 +108,15 @@ export default function Dashboard() {
 
   // Lookup maps for quick join
   const { clients, staff, services } = useBusinessData();
-  const clientMap = Object.fromEntries((clients || []).map((c: any) => [c._id || c.id, c]));
-  const staffMap = Object.fromEntries((staff || []).map((s: any) => [s._id || s.id, s]));
-  const serviceMap = Object.fromEntries((services || []).map((s: any) => [s._id || s.id, s]));
+  const clientMap = Object.fromEntries(
+    Array.isArray(clients) ? clients.map((c: any) => [c._id || c.id, c]) : []
+  );
+  const staffMap = Object.fromEntries(
+    Array.isArray(staff) ? staff.map((s: any) => [s._id || s.id, s]) : []
+  );
+  const serviceMap = Object.fromEntries(
+    Array.isArray(services) ? services.map((s: any) => [s._id || s.id, s]) : []
+  );
 
   // Format today's appointments for UI
   const recentAppointments = (todaysAppointments || []).map((apt: any) => {

@@ -127,8 +127,6 @@ export const updateUserProfile = mutation({
     userId: v.id("users"),
     name: v.optional(v.string()),
     email: v.optional(v.string()),
-    phone: v.optional(v.string()),
-    bio: v.optional(v.string()),
     avatarUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -142,8 +140,6 @@ export const updateUserProfile = mutation({
       profileUpdates.lastName = nameParts.slice(1).join(' ') || '';
     }
     if (updates.email) profileUpdates.email = updates.email;
-    if (updates.phone) profileUpdates.phone = updates.phone;
-    if (updates.bio) profileUpdates.bio = updates.bio;
     if (updates.avatarUrl) profileUpdates.avatarUrl = updates.avatarUrl;
     
     await ctx.db.patch(userId, profileUpdates);
