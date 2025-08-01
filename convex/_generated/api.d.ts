@@ -25,6 +25,7 @@ import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
 import type * as otpActions from "../otpActions.js";
 import type * as otps from "../otps.js";
+import type * as passwordReset from "../passwordReset.js";
 import type * as services from "../services.js";
 import type * as staff from "../staff.js";
 import type * as users from "../users.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   notifications: typeof notifications;
   otpActions: typeof otpActions;
   otps: typeof otps;
+  passwordReset: typeof passwordReset;
   services: typeof services;
   staff: typeof staff;
   users: typeof users;

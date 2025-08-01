@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Lock, ArrowRight, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { AuthLayout } from "@/components/auth/auth-layout"
+import { useParams, useSearchParams } from "next/navigation"
 
 export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -21,18 +22,44 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match")
-      return
-    }
+  // Convex password reset
+  // import { useSearchParams } from 'next/navigation';
+  // import { api } from '@/convex/_generated/api';
+  // import { useAction } from 'convex/react';
 
-    setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    setIsSuccess(true)
+  const [error, setError] = useState("");
+  // Retrieve token from either ?token query or /reset-password/[token] segment
+  const searchParams = useSearchParams();
+  const params = useParams();
+  const token = searchParams.get("token") ?? (params?.token as string | undefined) ?? null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+    if (!token) {
+      setError("Reset token missing from URL");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      // This should call a backend API route or directly use Convex action
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword: formData.password }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setIsSuccess(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to reset password");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   if (isSuccess) {

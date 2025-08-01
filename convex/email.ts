@@ -128,3 +128,111 @@ export const sendAppointmentEmailInternal = internalAction({
     }
   },
 });
+
+// Send password reset email
+// Send password reset success email
+export const sendPasswordResetSuccessEmail = internalAction({
+  args: {
+    to: v.string(),
+    userName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { to, userName } = args;
+    const html = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h2 style="color:#2563eb;">Password Changed Successfully</h2>
+      <p>Hi ${userName},</p>
+      <p>Your SchedulePro password was changed successfully. If you did not perform this action, please contact support immediately.</p>
+      <p>Best regards,<br/>The SchedulePro Team</p>
+    </div>`;
+    try {
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) throw new Error('RESEND_API_KEY env var not set');
+      const resend = new Resend(apiKey);
+      await resend.emails.send({
+        from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'noreply@schedulepro.store'}>` ,
+        to,
+        subject: 'Your SchedulePro password was changed',
+        html,
+      });
+    } catch (error) {
+      console.error('Failed to send password reset success email:', error);
+      throw new Error(`Failed to send confirmation email: ${error}`);
+    }
+  },
+});
+
+export const sendPasswordResetEmail = internalAction({
+  args: {
+    to: v.string(),
+    resetUrl: v.string(),
+    userName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { to, resetUrl, userName } = args;
+
+    const html = `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2563eb; font-size: 24px; margin: 0;">SchedulePro</h1>
+        </div>
+
+        <h2 style="color: #1f2937; font-size: 20px; margin-bottom: 16px;">
+          Password Reset Request
+        </h2>
+
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+          Hi ${userName},
+        </p>
+
+        <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+          We received a request to reset your password for your SchedulePro account. Click the button below to set a new password:
+        </p>
+
+        <div style="text-align: center; margin-bottom: 32px;">
+          <a
+            href="${resetUrl}"
+            style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-block;"
+          >
+            Reset Password
+          </a>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
+          If you didn't request this password reset, you can safely ignore this email. The link will expire in 24 hours.
+        </p>
+
+        <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin-bottom: 0;">
+          Best regards,<br />
+          The SchedulePro Team
+        </p>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px; color: #9ca3af; font-size: 12px;">
+        <p>
+          If the button doesn't work, copy and paste this link into your browser:<br />
+          <span style="color: #2563eb;">${resetUrl}</span>
+        </p>
+      </div>
+    </div>`;
+
+    try {
+      const apiKey = process.env.RESEND_API_KEY;
+      if (!apiKey) {
+        throw new Error('RESEND_API_KEY environment variable is not set. Please add it to your Convex dashboard at https://dashboard.convex.dev → Settings → Environment Variables');
+      }
+      
+      console.log('Sending password reset email to:', to);
+      const resend = new Resend(apiKey);
+      await resend.emails.send({
+        from: `${process.env.SENDER_NAME || 'SchedulePro'} <${process.env.FROM_EMAIL || 'noreply@email.schedulepro.store'}>`,
+        to,
+        subject: 'Reset your SchedulePro password',
+        html,
+      });
+      console.log('Password reset email sent successfully to:', to);
+    } catch (error) {
+      console.error("Failed to send password reset email:", error);
+      throw new Error(`Failed to send password reset email: ${error}`);
+    }
+  },
+});

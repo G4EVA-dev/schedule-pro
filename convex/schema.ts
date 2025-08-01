@@ -151,4 +151,15 @@ export default defineSchema({
     createdAt: v.number(),
     readAt: v.optional(v.number()),
   }).index("by_user", ["userId"]).index("by_createdAt", ["createdAt"]),
+
+  passwordResetTokens: defineTable({
+    userId: v.id("users"),
+    token: v.string(), // Hashed token
+    expiresAt: v.number(),
+    used: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_user", ["userId"])
+    .index("by_expires", ["expiresAt"]),
 });

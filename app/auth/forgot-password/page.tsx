@@ -16,13 +16,40 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
 
+  // Convex password reset
+  // Import these at the top if not already present:
+  // import { useMutation } from 'convex/react';
+  // import { api } from '@/convex/_generated/api';
+  // (Assume aliasing as needed for your project structure)
+  //
+  // const createPasswordResetToken = useMutation(api.passwordReset.createPasswordResetToken);
+  //
+  // For now, let's inline for clarity:
+
+  const [error, setError] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setIsLoading(false)
-    setIsSubmitted(true)
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    try {
+      // Dynamically import to avoid breaking SSR if convex/react isn't available
+      const { useMutation } = await import('convex/react');
+      const { api } = await import('@/convex/_generated/api');
+      // This is a hack: in a real app, useMutation should be called at the top level, but for demo/testing, we'll fetch via API route
+      const res = await fetch("/api/auth/send-reset-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to send reset email");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   if (isSubmitted) {
