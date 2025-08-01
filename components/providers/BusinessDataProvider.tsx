@@ -11,10 +11,13 @@ export const BusinessDataProvider = ({ children }: { children: React.ReactNode }
   const { businessId } = useAuth();
   const staff = useQuery(api.staff.getStaff, businessId ? { businessId } : "skip");
   const services = useQuery(api.services.getServices, businessId ? { businessId } : "skip");
-  const clients = useQuery(api.clients.getClients, businessId ? { businessId } : "skip");
+  const clientsData = useQuery(api.clients.getClients, businessId ? { businessId } : "skip");
+
+  // Extract clients array from the nested response structure
+  const clients = clientsData?.items || [];
 
   return (
-    <BusinessDataContext.Provider value={{ staff: staff || [], services: services || [], clients: clients || [] }}>
+    <BusinessDataContext.Provider value={{ staff: staff || [], services: services || [], clients }}>
       {children}
     </BusinessDataContext.Provider>
   );
