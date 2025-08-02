@@ -14,6 +14,7 @@ import {
   Bell,
   HelpCircle,
   LogOut,
+  Plus
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -75,7 +76,20 @@ const quickActions = [
     href: "/clients?new=true",
     icon: UserCheck,
     color: "bg-green-500 hover:bg-green-600",
+  }, 
+  {
+    name: "Add Staff",
+    href: "/settings?tab=business",
+    icon: Plus,
+    color: "bg-yellow-500 hover:bg-yellow-600",
   },
+  {
+    name: "Add Service",
+    href: "/settings?tab=business",
+    icon: UserCheck,
+    color: "bg-purple-500 hover:bg-purple-600",
+  }, 
+
 ]
 
 interface SidebarProps {

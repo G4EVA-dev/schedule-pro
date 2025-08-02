@@ -13,6 +13,8 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { ThemeToggle } from "../ui/theme-toggle";
 
 const pageNames: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -95,16 +97,8 @@ export function DashboardHeader() {
       {/* Actions */}
       <div className="flex items-center gap-2 min-w-0">
         {/* Quick Add Button */}
-        <Link href="/calendar?new=true" aria-label="Add new appointment">
-          <Button size="sm" className="hidden sm:flex focus-visible:ring-2 focus-visible:ring-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            New Appointment
-          </Button>
-          <Button size="icon" className="sm:hidden focus-visible:ring-2 focus-visible:ring-primary">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </Link>
-        {/* Notifications */}
+        <ThemeToggle />
+        
         <NotificationDropdown />
         {/* User Menu */}
         <UserMenu user={user} />

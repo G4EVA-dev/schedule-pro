@@ -286,12 +286,6 @@ export default function Dashboard() {
               Here's what's happening with your business today.
             </p>
           </div>
-          <Link href="/calendar?new=true">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Appointment
-            </Button>
-          </Link>
         </motion.div>
 
         {/* Stats Grid */}
@@ -416,38 +410,7 @@ export default function Dashboard() {
               </Card>
             )}
 
-            {/* Quick Actions */}
-            <Card id="dashboard-quick-actions">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Link href="/calendar?new=true">
-                  <Button variant="outline" className="w-full justify-start gap-3">
-                    <Calendar className="h-4 w-4" />
-                    Schedule Appointment
-                  </Button>
-                </Link>
-                <Link href="/clients?new=true">
-                  <Button variant="outline" className="w-full justify-start gap-3">
-                    <Users className="h-4 w-4" />
-                    Add New Client
-                  </Button>
-                </Link>
-                <Link href="/settings?tab=business">
-                  <Button variant="outline" className="w-full justify-start gap-3">
-                    <Plus className="h-4 w-4" />
-                    Add Staff
-                  </Button>
-                </Link>
-                <Link href="/settings?tab=business">
-                  <Button variant="outline" className="w-full justify-start gap-3">
-                    <Clock className="h-4 w-4" />
-                    Add Service
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+           
 
             {/* Recent Activity */}
             <Card id="dashboard-recent-activity">
