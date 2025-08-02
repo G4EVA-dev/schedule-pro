@@ -72,6 +72,19 @@ export const createAppointment = mutation({
     const staff = await ctx.db.get(args.staffId);
     const service = await ctx.db.get(args.serviceId);
 
+    // Debug logging
+    // console.log('[APPOINTMENT DEBUG] Creating appointment:', {
+    //   appointmentId,
+    //   clientId: args.clientId,
+    //   staffId: args.staffId,
+    //   serviceId: args.serviceId,
+    // });
+    // console.log('[APPOINTMENT DEBUG] Fetched records:', {
+    //   client: client ? { _id: client._id, name: client.name, email: client.email } : null,
+    //   staff: staff ? { _id: staff._id, userId: staff.userId, name: staff.name, email: staff.email } : null,
+    //   service: service ? { _id: service._id, name: service.name } : null,
+    // });
+
     // Send appointment creation email to client (if email present)
     if (client?.email) {
       try {
@@ -108,7 +121,7 @@ export const createAppointment = mutation({
             endTime: args.endTime,
             notes: args.notes,
           },
-          type: "creation",
+          type: "staff",
         });
         // Staff email sent above
       } catch (error) {
@@ -134,7 +147,7 @@ export const createAppointment = mutation({
                 endTime: args.endTime,
                 notes: args.notes,
               },
-              type: "creation",
+              type: "staff",
             });
           } catch (error) {
             console.error("Failed to send owner appointment email:", error);
@@ -143,28 +156,33 @@ export const createAppointment = mutation({
       }
     }
 
-    // In-app notification for client
-    const clientId = client?._id;
-    if (clientId) {
-      await ctx.runMutation(api.notifications.createNotification, {
-        userId: clientId,
-        title: "Appointment Confirmed",
-        message: `Your appointment for ${service?.name || "a service"} is confirmed!`,
-        type: "appointment",
-        relatedId: appointmentId,
-      });
+    // In-app notification for staff (use staff.userId, not staff._id)
+    console.log('[NOTIFICATION DEBUG] Checking staff notification conditions:', {
+      staffExists: !!staff,
+      staffUserId: staff?.userId,
+      staffName: staff?.name,
+    });
+    
+    if (staff?.userId) {
+      console.log('[NOTIFICATION DEBUG] Creating staff notification with userId:', staff.userId);
+      try {
+        const notificationId = await ctx.runMutation(api.notifications.createNotification, {
+          userId: staff.userId,
+          title: "New Appointment Booked",
+          message: `You have a new appointment for ${service?.name || "a service"}.`,
+          type: "appointment",
+          relatedId: appointmentId,
+        });
+        console.log('[NOTIFICATION DEBUG] Staff notification created successfully:', notificationId);
+      } catch (error) {
+        console.error('[NOTIFICATION DEBUG] Failed to create staff notification:', error);
+      }
+    } else {
+      console.log('[NOTIFICATION DEBUG] Skipping staff notification - no staff.userId found');
     }
-    // In-app notification for staff
-    const staffId = staff?._id;
-    if (staffId) {
-      await ctx.runMutation(api.notifications.createNotification, {
-        userId: staffId,
-        title: "New Appointment Booked",
-        message: `You have a new appointment for ${service?.name || "a service"}.`,
-        type: "appointment",
-        relatedId: appointmentId,
-      });
-    }
+
+    // Note: Clients don't have user accounts in this system, so no in-app notifications for clients
+    // They only receive email notifications (handled above)
 
     return appointmentId;
   },

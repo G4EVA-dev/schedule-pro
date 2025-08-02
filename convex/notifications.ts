@@ -3,22 +3,51 @@ import { v } from "convex/values";
 
 // In-app notification queries and mutations
 export const getNotifications = query({
-  args: { userId: v.string() },
+  args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
-    return await ctx.db
-      .query("inAppNotifications")
-      .withIndex("by_user", q => q.eq("userId", args.userId))
-      .order("desc")
-      .collect();
+    const { userId } = args;
+    console.log('[NOTIFICATION QUERY DEBUG] getNotifications called with userId:', userId);
+    
+    if (!userId) {
+      console.log('[NOTIFICATION QUERY DEBUG] No userId provided, returning empty array');
+      return [];
+    }
+    
+    try {
+      const notifications = await ctx.db
+        .query("inAppNotifications")
+        .withIndex("by_user", q => q.eq("userId", userId!))
+        .order("desc")
+        .collect();
+      
+      // console.log('[NOTIFICATION QUERY DEBUG] Found notifications:', {
+      //   userId,
+      //   count: notifications.length,
+      //   notifications: notifications.map(n => ({
+      //     id: n._id,
+      //     title: n.title,
+      //     message: n.message,
+      //     isRead: n.isRead,
+      //     createdAt: n.createdAt,
+      //   })),
+      // });
+      
+      return notifications;
+    } catch (error) {
+      console.error('[NOTIFICATION QUERY DEBUG] Error querying notifications:', error);
+      return [];
+    }
   },
 });
 
 export const getUnreadCount = query({
-  args: { userId: v.string() },
+  args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    const { userId } = args;
+    if (!userId) return 0;
     const unread = await ctx.db
       .query("inAppNotifications")
-      .withIndex("by_user", q => q.eq("userId", args.userId))
+      .withIndex("by_user", q => q.eq("userId", userId))
       .filter(q => q.eq(q.field("isRead"), false))
       .collect();
     return unread.length;
@@ -39,11 +68,26 @@ export const createNotification = mutation({
     relatedId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("inAppNotifications", {
-      ...args,
-      isRead: false,
-      createdAt: Date.now(),
-    });
+    // console.log('[NOTIFICATION CREATE DEBUG] Creating notification:', {
+    //   userId: args.userId,
+    //   title: args.title,
+    //   message: args.message,
+    //   type: args.type,
+    //   relatedId: args.relatedId,
+    // });
+    
+    try {
+      const notificationId = await ctx.db.insert("inAppNotifications", {
+        ...args,
+        isRead: false,
+        createdAt: Date.now(),
+      });
+      // console.log('[NOTIFICATION CREATE DEBUG] Notification created successfully:', notificationId);
+      return notificationId;
+    } catch (error) {
+      // console.error('[NOTIFICATION CREATE DEBUG] Failed to create notification:', error);
+      throw error;
+    }
   },
 });
 
@@ -55,11 +99,13 @@ export const markAsRead = mutation({
 });
 
 export const markAllAsRead = mutation({
-  args: { userId: v.string() },
+  args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    const { userId } = args;
+    if (!userId) return;
     const unread = await ctx.db
       .query("inAppNotifications")
-      .withIndex("by_user", q => q.eq("userId", args.userId))
+      .withIndex("by_user", q => q.eq("userId", userId!))
       .filter(q => q.eq(q.field("isRead"), false))
       .collect();
     

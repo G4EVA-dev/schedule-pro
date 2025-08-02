@@ -17,8 +17,8 @@ export function NotificationDropdown() {
     api.notifications.getNotifications,
     user?.id ? { userId: user.id } : "skip"
   );
-  const markAsRead = useMutation(api.notifications.markNotificationRead);
-  const markAllAsRead = useMutation(api.notifications.markAllNotificationsRead);
+  const markAsRead = useMutation(api.notifications.markAsRead);
+  const markAllAsRead = useMutation(api.notifications.markAllAsRead);
 
   if (!user) return null;
 
@@ -83,7 +83,7 @@ export function NotificationDropdown() {
                   key={n._id}
                   className={`flex items-start gap-2 p-4 cursor-pointer hover:bg-muted/50 transition group ${!n.isRead ? "bg-muted/30" : ""}`}
                   onClick={async () => {
-                    if (!n.isRead) await markAsRead({ notificationId: n._id });
+                    if (!n.isRead) await markAsRead({ id: n._id });
                   }}
                 >
                   <div className="flex-1">

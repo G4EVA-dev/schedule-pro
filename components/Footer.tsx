@@ -14,6 +14,12 @@ export default function Footer() {
           <Link href="/pricing" className="hover:underline">Pricing</Link>
           <Link href="/help" className="hover:underline">Help & Support</Link>
         </span>
+        <span className="flex items-center gap-2 text-[11px]">
+          Built with
+          <a href="https://convex.dev" target="_blank" rel="noopener" className="hover:underline font-semibold text-primary">Convex</a>
+          &
+          <a href="https://resend.com" target="_blank" rel="noopener" className="hover:underline font-semibold text-primary">Resend</a>
+        </span>
       </div>
     </footer>
   );

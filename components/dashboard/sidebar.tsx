@@ -190,6 +190,11 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </ScrollArea>
 
+      {/* Powered by */}
+      <div className="border-t px-4 py-2 text-[11px] text-muted-foreground text-center">
+        Powered by <a href="https://convex.dev" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Convex</a> &amp; <a href="https://resend.com" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Resend</a>
+      </div>
+
       {/* User Profile */}
       <div className="border-t p-4">
         <div className="flex items-center gap-3">

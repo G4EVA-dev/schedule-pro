@@ -5,6 +5,12 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { notFound, useRouter } from "next/navigation";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Booking · SchedulePro",
+  description: "Book appointments with ease using SchedulePro's booking page. Choose your service, select a date and time, and complete your booking.",
+};
 
 const fallbackLogo = "/logo-placeholder.png";
 
@@ -123,6 +129,11 @@ export function BookingPageClient({ businessId }: { businessId: string }) {
               <div className="w-1.5 h-1.5 bg-blue-300 rounded-full"></div>
               <span>Customer management</span>
             </div>
+          </div>
+
+          {/* Powered by */}
+          <div className="border-t px-4 py-2 text-[11px] text-muted-foreground text-center">
+            Powered by <a href="https://convex.dev" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Convex</a> &amp; <a href="https://resend.com" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Resend</a>
           </div>
           
           {/* Subtle CTA */}

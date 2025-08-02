@@ -413,6 +413,12 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
+          <span className="flex items-center gap-2 text-[11px]">
+          Built with
+          <a href="https://convex.dev" target="_blank" rel="noopener" className="hover:underline font-semibold text-primary">Convex</a>
+          &
+          <a href="https://resend.com" target="_blank" rel="noopener" className="hover:underline font-semibold text-primary">Resend</a>
+        </span>
           <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
             <p>&copy; 2024 SchedulePro. All rights reserved.</p>
           </div>

@@ -21,7 +21,7 @@ const FAQ = [
   },
   {
     q: "How do I contact support?",
-    a: "Use the feedback form below or email support@schedulepro.com.",
+    a: "Use the feedback form below or email email@schedulepro.store",
   },
 ];
 

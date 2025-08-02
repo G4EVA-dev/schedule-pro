@@ -21,7 +21,8 @@ export const sendAppointmentEmail = httpAction(async (ctx, request) => {
     </ul>
     ${notes ? `<p><b>Notes:</b> ${notes}</p>` : ''}
     <p>Thank you for choosing SchedulePro.</p>
-  </div>`;
+    <p style="font-size: 12px; color: #6b7280; margin-top:40px; text-align:center;">Powered by <a href="https://resend.com" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none;">Resend</a></p>
+    </div>`;
 
   try {
     const apiKey = process.env.RESEND_API_KEY;
@@ -76,28 +77,92 @@ export const sendAppointmentEmailInternal = internalAction({
     // Personalize email for staff vs. client
     let html;
     if (type === 'staff') {
-      html = `<div style="font-family: sans-serif;">
-        <h2>${action} Appointment Assigned</h2>
-        <p>Hello ${staffName},</p>
-        <p>You have been assigned a new appointment for <b>${serviceName}</b> with client <b>${clientName}</b>.</p>
-        <ul>
-          <li><b>Start:</b> ${prettyDate}</li>
-          <li><b>End:</b> ${prettyEnd}</li>
-        </ul>
-        ${notes ? `<p><b>Notes:</b> ${notes}</p>` : ''}
-        <p>Please log in to SchedulePro to view more details.</p>
+      html = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid #2563eb;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #2563eb; font-size: 24px; margin: 0;">SchedulePro</h1>
+            <p style="color: #6b7280; font-size: 14px; margin: 5px 0 0 0;">Staff Notification</p>
+          </div>
+          
+          <h2 style="color: #1f2937; font-size: 20px; margin-bottom: 16px;">🗓️ New Appointment Assigned</h2>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+            Hi <strong>${staffName}</strong>,
+          </p>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+            You have been assigned a new appointment. Here are the details:
+          </p>
+          
+          <div style="background-color: #f8fafc; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
+            <h3 style="color: #1f2937; font-size: 18px; margin: 0 0 12px 0;">📋 Appointment Details</h3>
+            <p style="margin: 8px 0; color: #374151;"><strong>Service:</strong> ${serviceName}</p>
+            <p style="margin: 8px 0; color: #374151;"><strong>Client:</strong> ${clientName}</p>
+            <p style="margin: 8px 0; color: #374151;"><strong>Start Time:</strong> ${prettyDate}</p>
+            <p style="margin: 8px 0; color: #374151;"><strong>End Time:</strong> ${prettyEnd}</p>
+            ${notes ? `<p style="margin: 8px 0; color: #374151;"><strong>Notes:</strong> ${notes}</p>` : ''}
+          </div>
+          
+          <div style="text-align: center; margin: 25px 0;">
+            <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Please log in to SchedulePro to manage this appointment</p>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://schedulepro.store'}/dashboard/calendar" 
+               style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-block;">
+              View in Dashboard
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+            Best regards,<br/>
+            The SchedulePro Team
+          </p>
+        </div>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 20px; text-align: center;">
+          Powered by <a href="https://resend.com" target="_blank" rel="noopener" style="color: #2563eb; text-decoration: none;">Resend</a>
+        </p>
       </div>`;
     } else {
-      html = `<div style="font-family: sans-serif;">
-        <h2>${action} Appointment</h2>
-        <p>Hello ${clientName},</p>
-        <p>Your appointment for <b>${serviceName}</b> with <b>${staffName}</b> is scheduled for:</p>
-        <ul>
-          <li><b>Start:</b> ${prettyDate}</li>
-          <li><b>End:</b> ${prettyEnd}</li>
-        </ul>
-        ${notes ? `<p><b>Notes:</b> ${notes}</p>` : ''}
-        <p>Thank you for choosing SchedulePro.</p>
+      html = `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid #10b981;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="color: #2563eb; font-size: 24px; margin: 0;">SchedulePro</h1>
+            <p style="color: #6b7280; font-size: 14px; margin: 5px 0 0 0;">Appointment Confirmation</p>
+          </div>
+          
+          <h2 style="color: #1f2937; font-size: 20px; margin-bottom: 16px;">✅ Your Appointment is Confirmed!</h2>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+            Hi <strong>${clientName}</strong>,
+          </p>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+            Great news! Your appointment has been confirmed. Here are your appointment details:
+          </p>
+          
+          <div style="background-color: #f0fdf4; padding: 20px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+            <h3 style="color: #1f2937; font-size: 18px; margin: 0 0 12px 0;">📅 Appointment Details</h3>
+            <p style="margin: 8px 0; color: #374151;"><strong>Service:</strong> ${serviceName}</p>
+            <p style="margin: 8px 0; color: #374151;"><strong>Provider:</strong> ${staffName}</p>
+            <p style="margin: 8px 0; color: #374151;"><strong>Date & Time:</strong> ${prettyDate}</p>
+            <p style="margin: 8px 0; color: #374151;"><strong>Duration:</strong> Until ${prettyEnd}</p>
+            ${notes ? `<p style="margin: 8px 0; color: #374151;"><strong>Special Notes:</strong> ${notes}</p>` : ''}
+          </div>
+          
+          <div style="background-color: #eff6ff; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #bfdbfe;">
+            <p style="color: #1e40af; font-size: 14px; margin: 0; font-weight: 500;">💡 <strong>Reminder:</strong> You'll receive a reminder email 30 minutes before your appointment.</p>
+          </div>
+          
+          <p style="color: #4b5563; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
+            If you need to reschedule or cancel, please contact us as soon as possible.
+          </p>
+          
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin-top: 30px;">
+            Thank you for choosing SchedulePro!<br/>
+            We look forward to serving you.
+          </p>
+        </div>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 20px; text-align: center;">
+          Powered by <a href="https://resend.com" target="_blank" rel="noopener" style="color: #2563eb; text-decoration: none;">Resend</a>
+        </p>
       </div>`;
     }
 
@@ -143,6 +208,8 @@ export const sendPasswordResetSuccessEmail = internalAction({
       <p>Hi ${userName},</p>
       <p>Your SchedulePro password was changed successfully. If you did not perform this action, please contact support immediately.</p>
       <p>Best regards,<br/>The SchedulePro Team</p>
+      <p style="font-size: 12px; color: #6b7280; margin-top:40px; text-align:center;">Powered by <a href="https://resend.com" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none;">Resend</a></p>
+      <p style="font-size: 12px; color: #6b7280; margin-top:40px; text-align:center;">Powered by <a href="https://resend.com" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none;">Resend</a></p>
     </div>`;
     try {
       const apiKey = process.env.RESEND_API_KEY;
@@ -213,6 +280,7 @@ export const sendPasswordResetEmail = internalAction({
           <span style="color: #2563eb;">${resetUrl}</span>
         </p>
       </div>
+      <p style="font-size: 12px; color: #6b7280; margin-top:40px; text-align:center;">Powered by <a href="https://resend.com" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none;">Resend</a></p>
     </div>`;
 
     try {
