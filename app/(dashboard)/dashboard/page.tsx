@@ -87,6 +87,8 @@ export default function Dashboard() {
       changeType: analytics.revenueChange >= 0 ? "positive" : "negative",
       icon: DollarSign,
       description: "vs last month",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100",
     },
     {
       title: "Appointments",
@@ -95,6 +97,8 @@ export default function Dashboard() {
       changeType: analytics.appointmentChange >= 0 ? "positive" : "negative",
       icon: Calendar,
       description: "this month",
+      color: "text-green-600",
+      bgColor: "bg-green-100",
     },
     {
       title: "New Clients",
@@ -103,6 +107,8 @@ export default function Dashboard() {
       changeType: "positive",
       icon: Users,
       description: "this month",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100",
     },
     {
       title: "Completion Rate",
@@ -111,6 +117,8 @@ export default function Dashboard() {
       changeType: "positive",
       icon: CheckCircle,
       description: "vs last month",
+      color: "text-orange-600",
+      bgColor: "bg-orange-100",
     },
   ] : []
 
@@ -166,12 +174,12 @@ export default function Dashboard() {
   }
 
   // Debug logs for troubleshooting
-  if (typeof window !== "undefined") {
-    console.log("currentUser", currentUser)
-    console.log("businessId", businessId)
-    console.log("analytics", analytics)
-    console.log("todaysAppointments", todaysAppointments)
-  }
+  // if (typeof window !== "undefined") {
+  //   console.log("currentUser", currentUser)
+  //   console.log("businessId", businessId)
+  //   console.log("analytics", analytics)
+  //   console.log("todaysAppointments", todaysAppointments)
+  // }
 
   // Loading states
   const isDataLoading = authLoading || analytics === undefined || todaysAppointments === undefined
@@ -298,7 +306,9 @@ export default function Dashboard() {
             <Card key={stat.title} className="hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
+                <div className={`p-3 rounded-lg ${stat.bgColor}`}>
+                        <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                      </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>

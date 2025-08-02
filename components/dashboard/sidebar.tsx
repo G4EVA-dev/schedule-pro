@@ -37,7 +37,7 @@ const navigation = [
     href: "/calendar",
     icon: Calendar,
     description: "Schedule and appointments",
-    badge: "3", // Could be dynamic
+    badge: "", // Could be dynamic
   },
   {
     name: "Clients",
