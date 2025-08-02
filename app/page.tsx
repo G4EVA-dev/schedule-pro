@@ -128,6 +128,9 @@ export default function LandingPage() {
                 <Link href="/dashboard" className="text-slate-600 hover:text-blue-600 transition-colors">
                   Dashboard
                 </Link>
+                <Link href="/roadmap" className="text-slate-600 hover:text-blue-600 transition-colors">
+                  Roadmap
+                </Link>
               </div>
             </div>
 
@@ -164,6 +167,9 @@ export default function LandingPage() {
               </Link>
               <Link href="/dashboard" className="block px-3 py-2 text-slate-600">
                 Dashboard
+              </Link>
+              <Link href="/roadmap" className="block px-3 py-2 text-slate-600">
+                Roadmap
               </Link>
               <div className="px-3 py-2 space-y-2">
                 <ThemeToggle />

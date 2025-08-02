@@ -199,12 +199,6 @@ export function Sidebar({ className }: SidebarProps) {
               Help & Support
             </Button>
           </Link>
-          <Link href="/roadmap">
-            <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3 relative">
-              <MapIcon className="h-4 w-4" />
-              Roadmap              
-            </Button>
-          </Link>
         </div>
       </ScrollArea>
 
