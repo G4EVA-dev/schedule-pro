@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { Calendar, Users, BarChart3, Zap, Shield, Star } from "lucide-react"
+import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 
 interface AuthLayoutProps {
@@ -48,8 +49,14 @@ export function AuthLayout({ children, title, subtitle, image }: AuthLayoutProps
           {/* Logo */}
           <div className="mb-8">
             <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3">
-                <Calendar className="h-6 w-6 text-blue-600" />
+              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 p-1">
+                <Image 
+                  src="/favicon_io/favicon-32x32.png" 
+                  alt="SchedulePro Logo" 
+                  width={24} 
+                  height={24}
+                  className="w-6 h-6"
+                />
               </div>
               <span className="text-2xl font-bold">SchedulePro</span>
             </div>
@@ -104,8 +111,14 @@ export function AuthLayout({ children, title, subtitle, image }: AuthLayoutProps
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <Calendar className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3 p-1">
+                <Image 
+                  src="/favicon_io/favicon-32x32.png" 
+                  alt="SchedulePro Logo" 
+                  width={24} 
+                  height={24}
+                  className="w-6 h-6 brightness-0 invert"
+                />
               </div>
               <span className="text-2xl font-bold text-foreground">SchedulePro</span>
             </div>

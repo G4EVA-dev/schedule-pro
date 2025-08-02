@@ -18,6 +18,7 @@ import {
   MapIcon,
 } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/hooks/use-auth"
@@ -113,8 +114,14 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Logo and Brand */}
       <div className="flex h-16 items-center border-b px-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Calendar className="h-4 w-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground p-1">
+            <Image 
+              src="/favicon_io/favicon-32x32.png" 
+              alt="SchedulePro Logo" 
+              width={20} 
+              height={20}
+              className="w-5 h-5 brightness-0 invert"
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold">SchedulePro</span>

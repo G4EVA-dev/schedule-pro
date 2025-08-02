@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { notFound, useRouter } from "next/navigation";
+import Image from "next/image";
 
 const fallbackLogo = "/logo-placeholder.png";
 
@@ -103,8 +104,14 @@ export function BookingPageClient({ businessId }: { businessId: string }) {
         {/* SchedulePro Branding */}
         <div className="flex flex-col items-center gap-4 w-full border-t border-blue-500/30 pt-8">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <span className="text-blue-600 font-bold text-sm">SP</span>
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center p-1">
+              <Image 
+                src="/favicon_io/favicon-32x32.png" 
+                alt="SchedulePro Logo" 
+                width={24} 
+                height={24}
+                className="w-6 h-6"
+              />
             </div>
             <span className="text-xl font-bold">SchedulePro</span>
           </div>

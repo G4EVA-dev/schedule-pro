@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Calendar, Clock, Users, BarChart3, Zap, Shield, Star, ArrowRight, CheckCircle, Menu, X } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const AnimatedCounter = ({ end, duration = 2 }: { end: number; duration?: number }) => {
@@ -101,7 +102,14 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="text-2xl font-bold text-blue-600 hover:scale-105 transition-transform cursor-pointer">
+              <div className="flex items-center text-2xl font-bold text-blue-600 hover:scale-105 transition-transform cursor-pointer">
+                <Image 
+                  src="/favicon_io/favicon-32x32.png" 
+                  alt="SchedulePro Logo" 
+                  width={32} 
+                  height={32}
+                  className="w-8 h-8 mr-2"
+                />
                 SchedulePro
               </div>
             </div>
@@ -348,7 +356,16 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="text-2xl font-bold mb-4">SchedulePro</div>
+              <div className="flex items-center text-2xl font-bold mb-4">
+                <Image 
+                  src="/favicon_io/favicon-32x32.png" 
+                  alt="SchedulePro Logo" 
+                  width={32} 
+                  height={32}
+                  className="w-8 h-8 mr-2 brightness-0 invert"
+                />
+                SchedulePro
+              </div>
               <p className="text-slate-400">The modern scheduling platform for growing businesses.</p>
             </div>
             <div>
