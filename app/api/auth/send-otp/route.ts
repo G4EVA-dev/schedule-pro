@@ -64,9 +64,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       success: true,
-      message: 'OTP sent successfully',
-      token: token,
-      otp: process.env.NODE_ENV === 'development' ? otpCode : undefined
+      message: 'If this email is valid, you will receive a verification code.',
     });
 
   } catch (error) {

@@ -413,7 +413,7 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <span className="flex items-center gap-2 text-[11px]">
+          <span className="flex items-center gap-2 text-[16px]">
           Built with
           <a href="https://convex.dev" target="_blank" rel="noopener" className="hover:underline font-semibold text-primary">Convex</a>
           &

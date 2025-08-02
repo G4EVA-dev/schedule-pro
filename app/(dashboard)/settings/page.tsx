@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { StaffServiceCard } from "@/components/dashboard/StaffServiceCard";
@@ -247,7 +248,7 @@ export default function SettingsPage() {
     // Handlers
     const handleCreateStaff = async (data: any) => {
       if (!businessId || !user?.id) {
-        alert('User context not loaded. Please refresh and try again.');
+        toast({ title: 'User context not loaded. Please refresh and try again.', variant: 'destructive' });
         return;
       }
       await createStaff({ businessId, userId: user.id, ...data });
@@ -278,7 +279,7 @@ export default function SettingsPage() {
                       className="ml-2 px-2 py-1 text-xs border rounded hover:bg-muted"
                       onClick={() => {
                         navigator.clipboard.writeText(businessId);
-                        alert('Business ID copied!');
+                        toast({ title: 'Business ID copied!', variant: 'default' });
                       }}
                     >Copy</button>
                   </div>
@@ -291,7 +292,7 @@ export default function SettingsPage() {
                       onClick={() => {
                         const url = typeof window !== 'undefined' ? `${window.location.origin}/book/${businessId}` : `/book/${businessId}`;
                         navigator.clipboard.writeText(url);
-                        alert('Booking URL copied!');
+                        toast({ title: 'Booking URL copied!', variant: 'default' });
                       }}
                     >Copy</button>
                   </div>

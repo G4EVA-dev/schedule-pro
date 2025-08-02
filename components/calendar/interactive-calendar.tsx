@@ -29,6 +29,7 @@ import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { DurationPicker } from "@/components/ui/duration-picker"
 import { useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { toast } from "@/components/ui/use-toast"
 
 interface StaffOption {
   id: string; // Convex doc ID for staff
@@ -570,40 +571,40 @@ function AppointmentForm({
 
     // Validate required fields
     if (!formData.title.trim()) {
-      window.alert("Please enter an appointment title.");
+      toast({ title: "Please enter an appointment title.", variant: "destructive" });
       return;
     }
     
     if (!formData.client) {
-      window.alert("Please select a client.");
+      toast({ title: "Please select a client.", variant: "destructive" });
       return;
     }
 
     // Validate staff selection
     if (!formData.staffId) {
-      window.alert("Please select a staff member.");
+      toast({ title: "Please select a staff member.", variant: "destructive" });
       return;
     }
     
     // Validate service selection
     if (!formData.serviceId || formData.serviceId === 'default-demo-service') {
-      window.alert("Please select a real service.");
+      toast({ title: "Please select a real service.", variant: "destructive" });
       return;
     }
 
     // Validate date and time
     if (!formData.startTime) {
-      window.alert("Please select a start date and time.");
+      toast({ title: "Please select a start date and time.", variant: "destructive" });
       return;
     }
     
     if (!formData.endTime) {
-      window.alert("Please select an end time.");
+      toast({ title: "Please select an end time.", variant: "destructive" });
       return;
     }
     
     if (formData.endTime <= formData.startTime) {
-      window.alert("End time must be after start time.");
+      toast({ title: "End time must be after start time.", variant: "destructive" });
       return;
     }
 

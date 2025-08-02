@@ -146,8 +146,9 @@ export default function RegisterPage() {
 
       // Show success message
       toast({
-        title: 'Account created!',
-        description: 'Please check your email to verify your account.',
+        title: 'User Created Successfully',
+        description: 'Welcome to SchedulePro! Please check your email to verify your account.',
+        variant: 'default',
       });
 
       // After successful registration

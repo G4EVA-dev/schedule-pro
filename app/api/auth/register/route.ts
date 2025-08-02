@@ -25,9 +25,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       { 
-        message: 'Registration successful!',
-        userId: result.userId,
-        businessId: result.businessId
+        message: 'Registration successful! Please check your email for a verification code.',
       },
       { status: 201 }
     );

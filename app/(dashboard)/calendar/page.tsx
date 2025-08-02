@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
+import { toast } from "@/components/ui/use-toast"
 import { motion } from "framer-motion"
 import { InteractiveCalendar } from "@/components/calendar/interactive-calendar"
 import { Button } from "@/components/ui/button"
@@ -185,19 +186,19 @@ export default function CalendarPage() {
   const handleAppointmentCreate = async (newAppointment: Omit<Appointment, "id">) => {
     if (!businessId) return;
     if (!newAppointment.client) {
-      alert("Please select a client.");
+      toast({ title: "Please select a client.", variant: "destructive" });
       return;
     }
     if (!newAppointment.staffId) {
-      alert("Please select a staff member.");
+      toast({ title: "Please select a staff member.", variant: "destructive" });
       return;
     }
     if (!newAppointment.serviceId) {
-      alert("Please select a service.");
+      toast({ title: "Please select a service.", variant: "destructive" });
       return;
     }
     if (!newAppointment.startTime || !newAppointment.endTime) {
-      alert("Please select start and end time.");
+      toast({ title: "Please select start and end time.", variant: "destructive" });
       return;
     }
     await createAppointment({

@@ -64,6 +64,11 @@ export function AuthLayout({ children, title, subtitle, image }: AuthLayoutProps
             <p className="text-blue-100 text-lg leading-relaxed">{subtitle}</p>
           </div>
 
+          {/* Powered by */}
+          <div className="border-t px-4 py-4 text-blue-100 text-sm leading-relaxed">
+            Powered by <a href="https://convex.dev" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Convex</a> &amp; <a href="https://resend.com" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Resend</a>
+          </div>
+
           {/* Features Grid */}
           <div className="grid grid-cols-2 gap-4 mb-8">
             {features.map((feature, index) => (

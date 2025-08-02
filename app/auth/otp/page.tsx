@@ -3,16 +3,20 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { AuthLayout } from '@/components/auth/auth-layout';
+import LoadingOverlay from '@/components/ui/loading-overlay';
 
 export default function OTPPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [password, setPassword] = useState('');
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resendDisabled, setResendDisabled] = useState(true);
   const [countdown, setCountdown] = useState(30);
@@ -86,18 +90,57 @@ export default function OTPPage() {
 
       toast({
         title: 'Success',
-        description: 'Email verified successfully!',
+        description: 'Email verified successfully! Please enter your password to complete sign-in.',
       });
-
-      console.log('Redirecting to dashboard...'); // Debug log
-      // Redirect to dashboard or login page
-      router.push('/dashboard');
-
+      setShowPasswordPrompt(true);
+      setIsLoading(false);
+      return;
     } catch (error) {
       console.error('OTP verification error:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to verify OTP',
+        variant: 'destructive',
+      });
+      // Clear OTP on error
+      setOtp(['', '', '', '', '', '']);
+    } finally {
+      console.log('Setting loading to false'); // Debug log
+      setIsLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Password submitted!'); // Debug log
+
+    if (!email || !password) {
+      console.log('No email or password found');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+        callbackUrl: '/dashboard',
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      if (result?.url) {
+        router.push(result.url);
+      }
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to sign-in',
         variant: 'destructive',
       });
       // Clear OTP on error
@@ -161,7 +204,8 @@ export default function OTPPage() {
       title="Verify your email"
       subtitle="We've sent a 6-digit verification code to your email address"
       image="/placeholder.svg?height=400&width=400&text=Verify+Email"
-    > 
+    >
+      {isLoading && <LoadingOverlay text={showPasswordPrompt ? "Signing you in..." : "Verifying code..."} />}
       <div className="flex min-h-screen flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
@@ -171,48 +215,76 @@ export default function OTPPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="flex justify-center space-x-2">
-              {otp.map((digit, index) => (
-               <Input
-               key={index}
-               type="text"
-               maxLength={1}
-               value={digit}
-               onChange={(e) => {
-                 const value = e.target.value.toUpperCase();
-                 if (value === '' || /^[A-Z0-9]$/.test(value)) {
-                   const newOtp = [...otp];
-                   newOtp[index] = value;
-                   setOtp(newOtp);
-                   if (value && index < 5) {
-                     const nextInput = e.target.nextElementSibling as HTMLInputElement;
-                     if (nextInput) nextInput.focus();
+          {/* OTP Input Form */}
+          {!showPasswordPrompt && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="flex justify-center space-x-2">
+                {otp.map((digit, index) => (
+                 <Input
+                 key={index}
+                 type="text"
+                 maxLength={1}
+                 value={digit}
+                 onChange={(e) => {
+                   const value = e.target.value.toUpperCase();
+                   if (value === '' || /^[A-Z0-9]$/.test(value)) {
+                     const newOtp = [...otp];
+                     newOtp[index] = value;
+                     setOtp(newOtp);
+                     if (value && index < 5) {
+                       const nextInput = e.target.nextElementSibling as HTMLInputElement;
+                       if (nextInput) nextInput.focus();
+                     }
                    }
-                 }
-               }}
-               onKeyDown={(e) => {
-                 if (e.key === 'Backspace' && !otp[index] && index > 0) {
-                   const prevInput = e.currentTarget.previousSibling as HTMLInputElement;
-                   if (prevInput) prevInput.focus();
-                 }
-               }}
-               className="w-12 h-14 text-center text-xl font-mono"
-               disabled={isLoading}
-               required
-             />
-              ))}
-            </div>
+                 }}
+                 onKeyDown={(e) => {
+                   if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                     const prevInput = e.currentTarget.previousSibling as HTMLInputElement;
+                     if (prevInput) prevInput.focus();
+                   }
+                 }}
+                 className="w-12 h-14 text-center text-xl font-mono"
+                 disabled={isLoading}
+                 required
+               />
+                ))}
+              </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading || otp.join('').length !== 6}
-              onClick={() => console.log('Button clicked!', { otpLength: otp.join('').length, isLoading })}
-            >
-              {isLoading ? 'Verifying...' : 'Verify Email'}
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading || otp.join('').length !== 6}
+                onClick={() => console.log('Button clicked!', { otpLength: otp.join('').length, isLoading })}
+              >
+                {isLoading ? 'Verifying...' : 'Verify Email'}
+              </Button>
+            </form>
+          )}
+
+          {/* Password Prompt After OTP */}
+          {showPasswordPrompt && (
+            <form onSubmit={handlePasswordSubmit} className="space-y-6">
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2">Enter your password to complete sign-in</label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  autoFocus
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading || !password}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+            </form>
+          )}
 
           <div className="text-center text-sm">
             <p className="text-muted-foreground">

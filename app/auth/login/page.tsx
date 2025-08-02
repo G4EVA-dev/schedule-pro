@@ -34,7 +34,7 @@ export default function LoginPage() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = "/dashboard";
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -95,10 +95,11 @@ export default function LoginPage() {
         });
       } else if (result?.url) {
         toast({
-          title: "Success!",
-          description: 'You have been successfully signed in.',
+          title: "Login Successful",
+          description: 'Welcome back to SchedulePro!',
+          variant: 'default',
         });
-        router.push(result.url);
+        router.push(callbackUrl);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -135,7 +136,7 @@ export default function LoginPage() {
           title: "Signing in...",
           description: 'Redirecting to your dashboard',
         });
-        router.push(result.url);
+        router.push(callbackUrl);
       }
     } catch (error) {
       console.error('Google sign-in error:', error);
