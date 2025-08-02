@@ -64,6 +64,7 @@ export const createAppointment = mutation({
     const appointmentId = await ctx.db.insert("appointments", {
       ...args,
       remindersSent: [],
+      reminderScheduled: false,
       createdAt: Date.now(),
     });
 
@@ -71,6 +72,23 @@ export const createAppointment = mutation({
     const client = await ctx.db.get(args.clientId);
     const staff = await ctx.db.get(args.staffId);
     const service = await ctx.db.get(args.serviceId);
+    const business = await ctx.db.get(args.businessId);
+
+    // Schedule appointment reminder (30 minutes before)
+    if (client?.email && service?.name && business?.name) {
+      try {
+        await ctx.runMutation(api.appointmentReminders.scheduleReminder, {
+          appointmentId,
+          appointmentStartTime: args.startTime,
+          clientEmail: client.email,
+          clientName: client.name || client.email,
+          serviceName: service.name,
+          businessName: business.name,
+        });
+      } catch (error) {
+        console.error("Failed to schedule appointment reminder:", error);
+      }
+    }
 
     // Debug logging
     // console.log('[APPOINTMENT DEBUG] Creating appointment:', {

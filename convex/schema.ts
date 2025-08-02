@@ -112,6 +112,7 @@ export default defineSchema({
     ),
     notes: v.optional(v.string()),
     remindersSent: v.array(v.string()), // ["24h", "2h", "confirmed"]
+    reminderScheduled: v.optional(v.boolean()), // Whether reminder is scheduled
     createdAt: v.number(),
   })
     .index("by_business", ["businessId"])
