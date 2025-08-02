@@ -5,22 +5,11 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import { notFound, useRouter } from "next/navigation";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Booking · SchedulePro",
-  description: "Book appointments with ease using SchedulePro's booking page. Choose your service, select a date and time, and complete your booking.",
-};
 
 const fallbackLogo = "/logo-placeholder.png";
 
 // Client component that handles the booking logic
 export function BookingPageClient({ businessId }: { businessId: string }) {
-
-   // Set page title
-    useEffect(() => {
-      document.title = 'Booking · SchedulePro';
-    }, []);
 
   // Fetch business info by ID
   const business = useQuery(api.businesses.getBusiness, { businessId });

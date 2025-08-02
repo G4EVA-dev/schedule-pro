@@ -4,18 +4,40 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export function CreateStaffModal({ open, onClose, onSubmit }: { open: boolean; onClose: () => void; onSubmit: (data: any) => void }) {
-  const [form, setForm] = useState({ name: "", email: "", avatar: "" });
+  const [form, setForm] = useState({ name: "", email: "" });
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Staff Member</DialogTitle>
         </DialogHeader>
-        <div className="space-y-2">
-          <Input placeholder="Name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <Input placeholder="Email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
-          <Input placeholder="Avatar URL (optional)" value={form.avatar} onChange={e => setForm(f => ({ ...f, avatar: e.target.value }))} />
-          <Button onClick={() => onSubmit(form)} className="w-full mt-2">Add Staff</Button>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="staff-name" className="text-sm font-medium">Name</label>
+            <Input 
+              id="staff-name"
+              placeholder="Enter staff member's name" 
+              value={form.name} 
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))} 
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="staff-email" className="text-sm font-medium">Email</label>
+            <Input 
+              id="staff-email"
+              type="email"
+              placeholder="Enter email address" 
+              value={form.email} 
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))} 
+            />
+          </div>
+          <Button 
+            onClick={() => onSubmit(form)} 
+            className="w-full" 
+            disabled={!form.name.trim() || !form.email.trim()}
+          >
+            Add Staff Member
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

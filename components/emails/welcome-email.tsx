@@ -32,6 +32,9 @@ export function WelcomeEmail({ name, verificationLink }: WelcomeEmailProps) {
             If you didn't create an account, you can safely ignore this email.
           </Text>
           <Text style={footer}>© {new Date().getFullYear()} SchedulePro</Text>
+          <Text style={footer}>
+          Powered by <a href="https://resend.com" target="_blank" rel="noopener">Resend</a>
+        </Text>
         </Container>
       </Body>
     </Html>

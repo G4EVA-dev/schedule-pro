@@ -105,7 +105,7 @@ export const sendAppointmentEmailInternal = internalAction({
           
           <div style="text-align: center; margin: 25px 0;">
             <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Please log in to SchedulePro to manage this appointment</p>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://schedulepro.store'}/dashboard/calendar" 
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://schedule-pro-omega.vercel.app'}/calendar" 
                style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-block;">
               View in Dashboard
             </a>
