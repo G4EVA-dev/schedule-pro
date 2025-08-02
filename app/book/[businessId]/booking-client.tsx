@@ -16,6 +16,12 @@ const fallbackLogo = "/logo-placeholder.png";
 
 // Client component that handles the booking logic
 export function BookingPageClient({ businessId }: { businessId: string }) {
+
+   // Set page title
+    useEffect(() => {
+      document.title = 'Booking · SchedulePro';
+    }, []);
+
   // Fetch business info by ID
   const business = useQuery(api.businesses.getBusiness, { businessId });
   const services = useQuery(api.services.getServices, { businessId });
@@ -132,7 +138,7 @@ export function BookingPageClient({ businessId }: { businessId: string }) {
           </div>
 
           {/* Powered by */}
-          <div className="border-t px-4 py-2 text-[11px] text-muted-foreground text-center">
+          <div className="border-t px-4 py-2 text-[16px] text-muted-foreground text-center">
             Powered by <a href="https://convex.dev" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Convex</a> &amp; <a href="https://resend.com" target="_blank" rel="noopener" className="font-semibold text-primary hover:underline">Resend</a>
           </div>
           
