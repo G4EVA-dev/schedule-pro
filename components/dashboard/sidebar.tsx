@@ -14,7 +14,8 @@ import {
   Bell,
   HelpCircle,
   LogOut,
-  Plus
+  Plus,
+  MapIcon,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -51,17 +52,18 @@ const navigation = [
     description: "Business insights",
   },
   {
-    name: "Roadmap",
-    href: "/roadmap",
-    icon: require("lucide-react").Map,
-    description: "Upcoming features",
-  },
-  {
     name: "Settings",
     href: "/settings",
     icon: Settings,
     description: "Configure your business",
   },
+  {
+    name: "Notifications",
+    href: "/notifications",
+    icon: Bell,
+    description: "View your Notifications",
+  },
+  
 ]
 
 const quickActions = [
@@ -182,7 +184,7 @@ export function Sidebar({ className }: SidebarProps) {
 
         <Separator className="mb-6" />
 
-        {/* Help & Support and Notifications */}
+        {/* Help & Support and RoadMap */}
         <div className="space-y-1">
           <Link href="/help">
             <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3">
@@ -190,15 +192,10 @@ export function Sidebar({ className }: SidebarProps) {
               Help & Support
             </Button>
           </Link>
-          <Link href="/notifications">
+          <Link href="/roadmap">
             <Button variant="ghost" size="sm" className="w-full justify-start gap-3 px-3 relative">
-              <Bell className="h-4 w-4" />
-              Notifications
-              {unreadCount > 0 && (
-                <span className="absolute right-4 top-2 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                  {unreadCount}
-                </span>
-              )}
+              <MapIcon className="h-4 w-4" />
+              Roadmap              
             </Button>
           </Link>
         </div>

@@ -350,9 +350,9 @@ export default function CalendarPage() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-slate-600 mb-1">{stat.title}</p>
-                        <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-                        <p className="text-sm text-slate-500 mt-1">{stat.change}</p>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">{stat.title}</p>
+                        <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{stat.change}</p>
                       </div>
                       <div className={`p-3 rounded-lg ${stat.bgColor}`}>
                         <stat.icon className={`h-6 w-6 ${stat.color}`} />

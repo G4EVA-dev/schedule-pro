@@ -277,9 +277,9 @@ export default function ClientsPage() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-slate-600 mb-1">{stat.title}</p>
-                        <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-                        <p className="text-sm text-slate-500 mt-1">{stat.change}</p>
+                        <p className="text-sm font-medium text-muted-foreground mb-1">{stat.title}</p>
+                        <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{stat.change}</p>
                       </div>
                       <div className={`p-3 rounded-lg ${stat.bgColor}`}>
                         <stat.icon className={`h-6 w-6 ${stat.color}`} />
@@ -559,24 +559,24 @@ export default function ClientsPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Email</Label>
-                  <p className="mt-1">{selectedClient.email}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                  <p className="mt-1 text-foreground">{selectedClient.email}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Phone</Label>
-                  <p className="mt-1">{selectedClient.phone}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Phone</Label>
+                  <p className="mt-1 text-foreground">{selectedClient.phone}</p>
                 </div>
                 <div className="col-span-2">
-                  <Label className="text-sm font-medium text-slate-600">Address</Label>
-                  <p className="mt-1">{selectedClient.address}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Address</Label>
+                  <p className="mt-1 text-foreground">{selectedClient.address}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Total Appointments</Label>
-                  <p className="mt-1 font-semibold">{selectedClient.totalAppointments}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Total Appointments</Label>
+                  <p className="mt-1 font-semibold text-foreground">{selectedClient.totalAppointments}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-slate-600">Total Spent</Label>
-                  <p className="mt-1 font-semibold">${selectedClient.totalSpent}</p>
+                  <Label className="text-sm font-medium text-muted-foreground">Total Spent</Label>
+                  <p className="mt-1 font-semibold text-foreground">${selectedClient.totalSpent}</p>
                 </div>
               </div>
 
