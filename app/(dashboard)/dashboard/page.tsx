@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/use-toast"
 import {
   Calendar,
   Users,
@@ -26,9 +27,11 @@ import { api } from "@/convex/_generated/api"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/hooks/use-auth"
 import { useBusinessData } from "@/components/providers/BusinessDataProvider"
+import DashboardTour from "@/components/dashboard/DashboardTour"
 
 export default function Dashboard() {
   const [isLoading] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
 
   // Set page title
   useEffect(() => {
@@ -261,213 +264,221 @@ export default function Dashboard() {
       </div>
     )
   }
-  
-  // No business found (or empty data)
-  if (!businessId) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">No Business Found</h2>
-          <p className="text-muted-foreground mb-4">You need to create a business first to view your dashboard.</p>
-          <Button asChild>
-            <Link href="/settings">Create Business</Link>
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  // Fallback for missing analytics or appointments
-  if (!analytics) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">No Analytics Data</h2>
-          <p className="text-muted-foreground mb-4">No analytics data found for your business. Try adding some appointments.</p>
-        </div>
-      </div>
-    )
-  }
-  if (!todaysAppointments) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">No Appointments Data</h2>
-          <p className="text-muted-foreground mb-4">No appointments found for today. Try booking an appointment.</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      {/* Welcome Section */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between">
-        <div className="flex-1">
-          <h2 className="text-2xl font-bold tracking-tight">
-            {currentUser?.name
-              ? `Welcome back, ${currentUser.name.split(' ')[0]}!`
-              : 'Welcome back!'}
-          </h2>
-          <p className="text-muted-foreground">
-            Here’s what’s happening with your business today.
-          </p>
-        </div>
-        <Link href="/calendar?new=true">
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            New Appointment
-          </Button>
-        </Link>
-      </motion.div>
-
-      {/* Stats Grid */}
-      <motion.div 
-        variants={itemVariants}
-        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+    <>
+      <DashboardTour />
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
       >
-        {stats.map((stat, index) => (
-          <Card key={stat.title} className="hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <span
-                  className={`inline-flex items-center gap-1 ${
-                    stat.changeType === "positive" ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  <TrendingUp className="h-3 w-3" />
-                  {stat.change}
-                </span>
-                <span className="ml-1">{stat.description}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </motion.div>
+        {/* Welcome Section */}
+        <motion.div variants={itemVariants} className="flex items-center justify-between">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold tracking-tight">
+              {currentUser?.name
+                ? `Welcome back, ${currentUser.name.split(' ')[0]}!`
+                : 'Welcome back!'}
+            </h2>
+            <p className="text-muted-foreground">
+              Here's what's happening with your business today.
+            </p>
+          </div>
+          <Link href="/calendar?new=true">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              New Appointment
+            </Button>
+          </Link>
+        </motion.div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Today's Appointments */}
-        <motion.div variants={itemVariants} className="col-span-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Today's Appointments</CardTitle>
-                <CardDescription>
-                  You have {recentAppointments.length} appointments scheduled for today
-                </CardDescription>
-              </div>
-              <Link href="/calendar">
-                <Button variant="outline" size="sm" className="gap-2">
-                  View All
-                  <ArrowUpRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentAppointments.map((appointment: any) => (
-                  <div
-                    key={appointment.id}
-                    className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+        {/* Stats Grid */}
+        <motion.div 
+          variants={itemVariants}
+          id="dashboard-stats"
+          className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        >
+          {stats.map((stat, index) => (
+            <Card key={stat.title} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
+                <stat.icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <span
+                    className={`inline-flex items-center gap-1 ${
+                      stat.changeType === "positive" ? "text-green-600" : "text-red-600"
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={appointment.avatar} alt={appointment.client} />
-                        <AvatarFallback>
-                          {appointment.client ? appointment.client.split(' ').map((n: string) => n[0]).join('') : 'UC'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{appointment.client}</p>
-                        <p className="text-sm text-muted-foreground">{appointment.service}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{appointment.time}</p>
-                        {getStatusBadge(appointment.status)}
-                      </div>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                    <TrendingUp className="h-3 w-3" />
+                    {stat.change}
+                  </span>
+                  <span className="ml-1">{stat.description}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </motion.div>
 
-        {/* Quick Actions & Overview */}
-        <motion.div variants={itemVariants} className="col-span-3 space-y-6">
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Link href="/calendar?new=true">
-                <Button variant="outline" className="w-full justify-start gap-3">
-                  <Calendar className="h-4 w-4" />
-                  Schedule Appointment
-                </Button>
-              </Link>
-              <Link href="/clients?new=true">
-                <Button variant="outline" className="w-full justify-start gap-3">
-                  <Users className="h-4 w-4" />
-                  Add New Client
-                </Button>
-              </Link>
-              <Link href="/settings">
-                <Button variant="outline" className="w-full justify-start gap-3">
-                  <Clock className="h-4 w-4" />
-                  Manage Services
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+        {/* Main Content Grid */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+          {/* Today's Appointments */}
+          <motion.div variants={itemVariants} id="dashboard-appointments" className="col-span-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Today's Appointments</CardTitle>
+                  <CardDescription>
+                    You have {recentAppointments.length} appointments scheduled for today
+                  </CardDescription>
+                </div>
+                <Link href="/calendar">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    View All
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {recentAppointments.map((appointment: any) => (
+                    <div
+                      key={appointment.id}
+                      className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={appointment.avatar} alt={appointment.client} />
+                          <AvatarFallback>
+                            {appointment.client ? appointment.client.split(' ').map((n: string) => n[0]).join('') : 'UC'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{appointment.client}</p>
+                          <p className="text-sm text-muted-foreground">{appointment.service}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{appointment.time}</p>
+                          {getStatusBadge(appointment.status)}
+                        </div>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          {/* Recent Activity */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                  <div className="text-sm">
-                    <span className="font-medium">Sarah Johnson</span> confirmed appointment
+          {/* Quick Actions & Overview */}
+          <motion.div variants={itemVariants} className="col-span-3 space-y-6">
+            {/* Booking URL */}
+            {businessId && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ArrowUpRight className="h-4 w-4" />
+                    Your Booking URL
+                  </CardTitle>
+                  <CardDescription>
+                    Share this link with clients to let them book appointments
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                    <code className="flex-1 text-sm font-mono truncate min-w-0 pr-2">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/book/${businessId}` : `/book/${businessId}`}
+                    </code>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="flex-shrink-0"
+                      disabled={isCopied}
+                      onClick={() => {
+                        const url = typeof window !== 'undefined' ? `${window.location.origin}/book/${businessId}` : `/book/${businessId}`;
+                        navigator.clipboard.writeText(url);
+                        setIsCopied(true);
+                        setTimeout(() => setIsCopied(false), 2000);
+                      }}
+                    >
+                      {isCopied ? "Copied!" : "Copy"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Quick Actions */}
+            <Card id="dashboard-quick-actions">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Link href="/calendar?new=true">
+                  <Button variant="outline" className="w-full justify-start gap-3">
+                    <Calendar className="h-4 w-4" />
+                    Schedule Appointment
+                  </Button>
+                </Link>
+                <Link href="/clients?new=true">
+                  <Button variant="outline" className="w-full justify-start gap-3">
+                    <Users className="h-4 w-4" />
+                    Add New Client
+                  </Button>
+                </Link>
+                <Link href="/settings?tab=business">
+                  <Button variant="outline" className="w-full justify-start gap-3">
+                    <Plus className="h-4 w-4" />
+                    Add Staff
+                  </Button>
+                </Link>
+                <Link href="/settings?tab=business">
+                  <Button variant="outline" className="w-full justify-start gap-3">
+                    <Clock className="h-4 w-4" />
+                    Add Service
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card id="dashboard-recent-activity">
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                    <div className="text-sm">
+                      <span className="font-medium">Sarah Johnson</span> confirmed appointment
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                    <div className="text-sm">
+                      <span className="font-medium">New client</span> Mike Chen registered
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
+                    <div className="text-sm">
+                      <span className="font-medium">Payment received</span> from Emma Wilson
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                  <div className="text-sm">
-                    <span className="font-medium">New client</span> Mike Chen registered
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-yellow-500 rounded-full"></div>
-                  <div className="text-sm">
-                    <span className="font-medium">Payment received</span> from Emma Wilson
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </motion.div>
-  )
-}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </motion.div>
+    </>
+  )}

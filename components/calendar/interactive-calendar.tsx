@@ -9,7 +9,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ChevronLeft, ChevronRight, Plus, Clock, User, Trash2, MoreHorizontal } from "lucide-react"
+import {
+  Calendar,
+  Users,
+  DollarSign,
+  TrendingUp,
+  Plus,
+  ArrowUpRight,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  MoreHorizontal,
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight,
+  Trash2,
+  User,
+} from "lucide-react"
 import { useState, useRef, useCallback, useEffect } from "react"
 import {
   format,
@@ -30,6 +46,8 @@ import { DurationPicker } from "@/components/ui/duration-picker"
 import { useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { toast } from "@/components/ui/use-toast"
+import Link from "next/link"
+
 
 interface StaffOption {
   id: string; // Convex doc ID for staff
@@ -640,38 +658,53 @@ function AppointmentForm({
 
       <div className="space-y-2">
         <Label htmlFor="client">Client</Label>
-        <Select
-          value={formData.client}
-          onValueChange={val => setFormData({ ...formData, client: val })}
-          required
-          disabled={!mappedClients.length}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder={mappedClients.length ? "Select client" : "No clients found"} />
-          </SelectTrigger>
-          <SelectContent className="max-h-60 overflow-y-auto">
-            <div className="sticky top-0 z-10 bg-white px-2 py-1">
-              <Input
-                autoFocus
-                className="w-full"
-                placeholder="Search clients..."
-                value={clientSearch}
-                onChange={e => setClientSearch(e.target.value)}
-                disabled={!mappedClients.length}
-              />
-            </div>
-            {filteredClients.length ? (
-              filteredClients.map((client) => (
-                <SelectItem key={client.id} value={client.id} className="flex items-center space-x-2">
-                  <span className="truncate font-medium">{client.name}</span>
-                  {client.email && <span className="ml-2 text-xs text-slate-500 truncate">{client.email}</span>}
-                </SelectItem>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-sm text-slate-500">No clients found</div>
-            )}
-          </SelectContent>
-        </Select>
+        {mappedClients.length > 0 ? (
+          <Select
+            value={formData.client}
+            onValueChange={val => setFormData({ ...formData, client: val })}
+            required
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select client" />
+            </SelectTrigger>
+            <SelectContent className="max-h-60 overflow-y-auto">
+              <div className="sticky top-0 z-10 bg-white px-2 py-1">
+                <Input
+                  autoFocus
+                  className="w-full"
+                  placeholder="Search clients..."
+                  value={clientSearch}
+                  onChange={e => setClientSearch(e.target.value)}
+                />
+              </div>
+              {filteredClients.length ? (
+                filteredClients.map((client) => (
+                  <SelectItem key={client.id} value={client.id} className="flex items-center space-x-2">
+                    <span className="truncate font-medium">{client.name}</span>
+                    {client.email && <span className="ml-2 text-xs text-slate-500 truncate">{client.email}</span>}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="px-4 py-2 text-sm text-slate-500">No clients found</div>
+              )}
+            </SelectContent>
+          </Select>
+        ) : (
+          <div className="p-3 border border-dashed border-gray-300 rounded-md bg-gray-50/50 text-center">
+            <p className="text-sm text-gray-600 mb-2">No clients available</p>
+            <Link href="/clients?new=true">
+              <Button 
+                type="button" 
+                size="sm" 
+                variant="outline" 
+                className="gap-1"
+              >
+                <Plus className="h-3 w-3" />
+                Add Client First
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Enhanced Date & Time Selection */}
@@ -695,28 +728,40 @@ function AppointmentForm({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="staff">Staff</Label>
-          <Select
-            value={formData.staffId}
-            onValueChange={val => setFormData({ ...formData, staffId: val })}
-            required
-            disabled={!mappedStaff.length}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={mappedStaff.length ? "Select staff" : "No staff found"} />
-            </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto">
-              {mappedStaff.length ? (
-                mappedStaff.map((staffMember) => (
+          {mappedStaff.length > 0 ? (
+            <Select
+              value={formData.staffId}
+              onValueChange={val => setFormData({ ...formData, staffId: val })}
+              required
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select staff" />
+              </SelectTrigger>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                {mappedStaff.map((staffMember) => (
                   <SelectItem key={staffMember.id} value={staffMember.id} className="flex items-center space-x-2">
                     <span className="truncate font-medium">{staffMember.name}</span>
                     {staffMember.email && <span className="ml-2 text-xs text-slate-500 truncate">{staffMember.email}</span>}
                   </SelectItem>
-                ))
-              ) : (
-                <div className="px-4 py-2 text-sm text-slate-500">No staff found</div>
-              )}
-            </SelectContent>
-          </Select>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="p-3 border border-dashed border-gray-300 rounded-md bg-gray-50/50 text-center">
+              <p className="text-sm text-gray-600 mb-2">No staff available</p>
+              <Link href="/settings?tab=business">
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Staff
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="service">Service</Label>

@@ -35,6 +35,7 @@ import {
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAuth } from "@/hooks/use-auth"
@@ -50,7 +51,9 @@ type AppearanceSettingsProps = {
 
 export default function SettingsPage() { 
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("profile")
+  const searchParams = useSearchParams()
+  const tabFromUrl = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState(tabFromUrl || "profile")
 
   // Set page title
   useEffect(() => {
@@ -398,7 +401,7 @@ export default function SettingsPage() {
               {staffLoading ? (
                 <div className="text-muted-foreground text-sm">Loading staff...</div>
               ) : staff && staff.length === 0 ? (
-                <div className="text-muted-foreground text-sm">No staff members yet.</div>
+                <div className="text-muted-foreground text-sm">No staff members yet. You can add yourself</div>
               ) : (
                 <ul className="divide-y border rounded-md mt-2">
                   {staff && staff.map((staff: any) => (
@@ -730,15 +733,15 @@ export default function SettingsPage() {
               <Button variant="ghost" size="icon" className="lg:hidden mr-2" onClick={() => setSidebarOpen(true)}>
                 <Menu className="h-6 w-6" />
               </Button>
-              <h1 className="text-2xl font-semibold">Settings</h1>
+              <h1 className="text-2xl font-semibold">Tabs</h1>
             </div>
 
-            <div className="flex items-center space-x-4">
+            {/* <div className="flex items-center space-x-4">
               <Button className="hover:scale-105 transition-all">
                 <Save className="h-4 w-4 mr-2" />
                 Save Changes
               </Button>
-            </div>
+            </div> */}
           </div>
         </header>
 
